@@ -17,7 +17,10 @@ export and sends raise/clear notifications - the wall shows it, the email
 tells you. A fifth sibling,
 [**SyslogCanvas**](https://github.com/RootSwitch/SyslogCanvas), collects syslog
 and SNMP traps from the same devices - no board integration, just the same
-self-hosted deployment shape.
+self-hosted deployment shape. And
+[**LaunchCanvas**](https://github.com/RootSwitch/LaunchCanvas), the suite's
+front door, uploads boards to this wall straight from the browser - the
+`scp` step is gone.
 
 ![The PingCanvas kiosk wall: a corporate network with green rings and latency
 readouts on healthy devices, one POS terminal down - red-washed, its branch
@@ -197,6 +200,6 @@ the monitor you want.
 ## License
 
 [The Unlicense](LICENSE) - public domain, same as CrossCanvas, SNMPCanvas,
-SyslogCanvas, and AlertCanvas. (nginx, Alpine, and PowerShell are pulled by Docker at build/run
+SyslogCanvas, AlertCanvas, and LaunchCanvas. (nginx, Alpine, and PowerShell are pulled by Docker at build/run
 time and remain under their own licenses - none of their code lives in this
 repo.)
