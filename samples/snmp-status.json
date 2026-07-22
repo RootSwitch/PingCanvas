@@ -1,0 +1,154 @@
+{
+ "schemaVersion": 2,
+ "generator": "SNMPCanvas (sample)",
+ "generatedAt": "2026-07-16T12:00:00Z",
+ "pollIntervalSec": 30,
+ "interfaces": [
+  {
+   "id": "EdgeSw-01:GigabitEthernet0/1",
+   "device": {
+    "name": "EdgeSw-01",
+    "host": "203.0.113.10",
+    "status": "up"
+   },
+   "ifIndex": 1,
+   "name": "GigabitEthernet0/1",
+   "alias": "Uplink-1",
+   "speedBps": 1000000000,
+   "adminStatus": "up",
+   "operStatus": "up",
+   "sampledAt": "2026-07-16T12:00:00Z",
+   "inBps": 56000000,
+   "outBps": 32000000,
+   "inErrorsPerSec": 0,
+   "outErrorsPerSec": 0,
+   "inDiscardsPerSec": 0,
+   "outDiscardsPerSec": 0,
+   "code": "K7Q2"
+  },
+  {
+   "id": "EdgeSw-01:Port-Channel1",
+   "device": {
+    "name": "EdgeSw-01",
+    "host": "203.0.113.10",
+    "status": "up"
+   },
+   "ifIndex": 2,
+   "name": "Port-Channel1",
+   "alias": "Cable-LAG",
+   "speedBps": 1000000000,
+   "adminStatus": "up",
+   "operStatus": "up",
+   "sampledAt": "2026-07-16T12:00:00Z",
+   "inBps": 910000000,
+   "outBps": 120000000,
+   "inErrorsPerSec": 3,
+   "outErrorsPerSec": 0,
+   "inDiscardsPerSec": 0,
+   "outDiscardsPerSec": 0,
+   "code": "M4XR"
+  },
+  {
+   "id": "CoreRtr-02:GigabitEthernet0/2",
+   "device": {
+    "name": "CoreRtr-02",
+    "host": "203.0.113.20",
+    "status": "up"
+   },
+   "ifIndex": 5,
+   "name": "GigabitEthernet0/2",
+   "alias": "WAN-2",
+   "speedBps": 1000000000,
+   "adminStatus": "up",
+   "operStatus": "down",
+   "sampledAt": "2026-07-16T12:00:00Z",
+   "inBps": 0,
+   "outBps": 0,
+   "inErrorsPerSec": 0,
+   "outErrorsPerSec": 0,
+   "inDiscardsPerSec": 0,
+   "outDiscardsPerSec": 0,
+   "code": "P9WT"
+  },
+  {
+   "id": "CoreRtr-02:GigabitEthernet0/9",
+   "device": {
+    "name": "CoreRtr-02",
+    "host": "203.0.113.20",
+    "status": "unknown"
+   },
+   "ifIndex": 9,
+   "name": "GigabitEthernet0/9",
+   "alias": "Sensor-Net",
+   "speedBps": 1000000000,
+   "adminStatus": "up",
+   "operStatus": "unknown",
+   "sampledAt": "2026-07-16T12:00:00Z",
+   "inBps": null,
+   "outBps": null,
+   "inErrorsPerSec": null,
+   "outErrorsPerSec": null,
+   "inDiscardsPerSec": null,
+   "outDiscardsPerSec": null,
+   "code": "R3JD"
+  }
+ ],
+ "metrics": [
+  {
+   "code": "H4TN",
+   "kind": "cpu",
+   "host": "Server-A",
+   "display": "CPU 12%",
+   "value": 12,
+   "unit": "%",
+   "status": "ok",
+   "sampledAt": "2026-07-16T12:00:00Z"
+  },
+  {
+   "code": "D8YK",
+   "kind": "disk",
+   "host": "Server-A",
+   "display": "Disk 78%",
+   "value": 78,
+   "unit": "%",
+   "sampledAt": "2026-07-16T12:00:00Z"
+  },
+  {
+   "code": "T5FN",
+   "kind": "temp",
+   "host": "Server-A",
+   "display": "Temp 58C",
+   "value": 58,
+   "unit": "C",
+   "sampledAt": "2026-07-16T12:00:00Z"
+  },
+  {
+   "code": "H7VC",
+   "kind": "cpu",
+   "host": "Server-B",
+   "display": "CPU 93%",
+   "value": 93,
+   "unit": "%",
+   "status": "warn",
+   "sampledAt": "2026-07-16T12:00:00Z"
+  },
+  {
+   "code": "M2LP",
+   "kind": "mem",
+   "host": "Server-B",
+   "display": "Mem 61%",
+   "value": 61,
+   "unit": "%",
+   "sampledAt": "2026-07-16T12:00:00Z"
+  },
+  {
+   "code": "G6QB",
+   "kind": "fan",
+   "host": "Server-B",
+   "display": "Fan --",
+   "value": null,
+   "status": "unknown",
+   "sampledAt": "2026-07-16T12:00:00Z"
+  }
+ ]
+}

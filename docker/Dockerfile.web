@@ -1,0 +1,17 @@
+# PingCanvas web tier - nginx serving both apps + the bind-mounted /data files.
+# Build context is the repo root; run docker/build-web.ps1 first to populate
+# docker/web/ (the baked-in app assets).
+FROM nginx:alpine
+COPY docker/web/ /usr/share/nginx/html/
+COPY docker/nginx.conf /etc/nginx/conf.d/default.conf
+# Pristine copy of the :80 server - the TLS entrypoint script restores it on
+# every boot before deciding about HTTPS/redirect, so a `docker restart` never
+# inherits a stale redirect or a :443 server whose cert has been removed.
+COPY docker/nginx.conf /etc/nginx/pingcanvas-http.conf.pristine
+COPY docker/nginx-locations.conf /etc/nginx/snippets/pingcanvas-locations.conf
+COPY docker/40-pingcanvas-tls.sh /docker-entrypoint.d/40-pingcanvas-tls.sh
+RUN chmod +x /docker-entrypoint.d/40-pingcanvas-tls.sh
+# /usr/share/nginx/html/data is provided at runtime by a bind mount (compose).
+# HTTPS is opt-in at runtime: mount a cert+key to /etc/nginx/certs and the
+# entrypoint script (40-pingcanvas-tls.sh) enables a :443 server. No cert -> HTTP
+# only. See docker/README.md ("HTTPS").

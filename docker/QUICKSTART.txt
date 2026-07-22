@@ -1,0 +1,57 @@
+PingCanvas - quick start (offline image)
+========================================
+
+You have:  pingcanvas-<arch>.tar.gz              (the app; may include a -<version>)
+           docker-compose.yml                   (how to run it)
+
+Needs:     Docker (with the compose plugin). Nothing else - no source, no
+           PowerShell. The tarball must match your CPU arch (amd64 or arm64).
+
+1. Put both files in a folder and open a terminal there:
+       mkdir -p pingcanvas && cd pingcanvas
+       # (copy the .tar.gz and docker-compose.yml into this folder)
+
+2. Load the images and make a data folder:
+       docker load < pingcanvas-*.tar.gz
+       mkdir data
+
+3. Start it:
+       docker compose up -d
+
+4. Open the editor and draw your network (devices need an IP-Address in
+   Device Details - see Help in the app):
+       http://<this-host>:8080/index.html
+   Save. The file downloads to your browser.
+
+5. Move that board into the data folder, named board.xcanvas:
+       mv ~/Downloads/your-diagram.xcanvas ./data/board.xcanvas
+
+6. Open the live NOC wall (green = up, red = down):
+       http://<this-host>:8080/kiosk.html?board=data/board.xcanvas&status=data/status.json
+
+That's it. The poller checks every 30s; drop in or replace a board anytime
+(no restart). Kiosk URL options: &bg=%23111827 (dark), &grid=1, &latency=0.
+
+Optional: HTTPS
+---------------
+Plain HTTP is fine on a trusted network. To add TLS in the container (no rebuild):
+    ./gen-selfsigned-cert.sh noc.lan       # Linux (needs openssl; if ./certs is
+                                           #   root-owned: sudo chown $USER ./certs)
+    .\gen-selfsigned-cert.ps1 -Cn noc.lan  # Windows (pulls alpine/openssl once -
+                                           #   needs registry access that one time)
+    docker compose restart web             # re-runs the entrypoint, serves :443
+                                           #   (up -d is NOT enough - nothing changed
+                                           #    that compose tracks)
+Then use https://<this-host>:8443/…  (self-signed -> browsers warn; trust it once).
+For real/auto-renewing certs, put a proxy (e.g. Caddy) in front instead.
+
+Notes
+-----
+- The image tarballs bundle nginx, Alpine, and PowerShell - each remains under
+  its own open-source license (BSD/MIT/etc.), carried inside the images.
+- The poller pings/TCP-checks your devices from this host. On Linux it uses
+  host networking + NET_RAW (already set) so it can reach your LAN.
+- Your boards live in ./data on this host - back that up; the containers are
+  disposable. `docker compose down` never touches ./data.
+- Port 8080 in use? Edit the "ports:" line in docker-compose.yml.
+- Not on Linux? Remove the "network_mode: host" line and rely on bridge routing.

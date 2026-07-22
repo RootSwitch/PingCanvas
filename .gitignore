@@ -1,0 +1,35 @@
+# Poller output (generated status feeds) and temp files
+samples/out/
+**/status.json
+**/status-*.json
+**/*.tmp
+
+# Kiosk files synced from CrossCanvas (build artifacts - run tools/sync-from-crosscanvas.ps1)
+kiosk/app.js
+kiosk/devices.js
+kiosk/style.css
+kiosk/kiosk.html
+# pre-4.0 syncs generated the kiosk shell under this name
+kiosk/index.html
+
+# Local test web root (built by tools, holds board + status copies).
+# /web/ is the current convention (matches the poller's default outputDir);
+# webroot/ was the old name and may linger on existing checkouts.
+/web/
+webroot/
+
+# Docker build artifacts + runtime data
+docker/web/
+data/
+dist/
+
+# TLS certs/keys - never commit private keys (Pattern A HTTPS, gen-selfsigned-cert.*)
+certs/
+**/certs/
+*.pem
+
+# Editor / OS cruft
+.vs/
+*.user
+Thumbs.db
+.DS_Store

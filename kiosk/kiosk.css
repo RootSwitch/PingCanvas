@@ -1,0 +1,135 @@
+/*
+ * kiosk.css - overlay styles for PingCanvas kiosk mode.
+ * Layered ON TOP of CrossCanvas's style.css (synced copy). Only the chrome-hiding,
+ * status ring, stale banner and HUD live here; everything else is CrossCanvas's.
+ */
+
+/* Hide all editor chrome (kiosk-init.js adds class="kiosk" to <body>). IDs
+   match CrossCanvas's index.html: menubar, toolbar, sidebar, properties-host. */
+body.kiosk #menubar,
+body.kiosk #toolbar,
+body.kiosk #sidebar,
+body.kiosk #properties-host { display: none !important; }
+
+body.kiosk { overflow: hidden; cursor: none; }
+
+/* Dark-surface contrast rescue. Boards are authored against a white canvas, so
+   their label text carries fill="#333" - illegible once ?bg= or a rotating
+   theme puts a dark canvas underneath. kiosk-init.js tags each board label
+   whose COMPOSITED surface (canvas + any zones over it) is dark; a light zone
+   on a dark canvas correctly keeps its dark text.
+   A CSS rule outranks the fill presentation attribute, so labels recolor with
+   NO re-render - which matters: re-rendering a layer would wipe the SNMP
+   overlay's in-place label swaps and frame tints. Only board layers are
+   tagged; #status-overlay is kiosk-owned (rings, latency, SNMP pills). */
+body.kiosk text.pc-on-dark { fill: var(--pc-board-text, #e8e8e8); }
+
+/* Canvas fills the viewport, scrollbars hidden, and the board is inert -
+   no clicks, drags, context menus or selections reach the editor code. */
+body.kiosk #canvas-container {
+    position: fixed; inset: 0;
+    margin: 0 !important;   /* clear the editor's sidebar offset (margin-left) */
+    overflow: hidden;
+    pointer-events: none;
+    user-select: none;
+}
+
+/* Status ring: a stroked outline per device/zone, drawn by kiosk-init.js in
+   its own #status-overlay group. Color set inline from StatusFeed.STATE_COLORS. */
+.status-ring { fill: none; stroke-width: 4; opacity: 0.95; pointer-events: none; }
+/* Down devices: translucent red wash over the whole body (the ring rect sits on
+   top of the device, so its fill tints it) - unmistakable on any palette. The
+   fill must live HERE: a CSS `fill` beats the SVG fill attribute, so setting it
+   from JS via setAttribute would be silently overridden by the rule above. */
+.status-ring.down {
+    fill: rgba(214, 69, 69, 0.45);
+    animation: statusPulse 1.4s ease-in-out infinite;
+}
+
+@keyframes statusPulse {
+    0%, 100% { opacity: 0.95; }
+    50%      { opacity: 0.3; }
+}
+
+/* Per-device response-time label (drawn above the device by kiosk-init.js). */
+/* Response-time text uses the subtitle/caption treatment - near-white fill with
+   a dark outline (paint-order: stroke draws the outline behind the glyphs) - so
+   it stays legible on ANY backdrop: a dark board background, a light-filled
+   zone, or a colorful icon. No per-background detection needed (the label's real
+   backdrop is whatever zone/device it sits over, not the canvas bg). */
+.status-latency {
+    font: 600 14px system-ui, sans-serif;
+    fill: #f5f7fa;
+    pointer-events: none;
+    paint-order: stroke;
+    stroke: rgba(15, 20, 30, 0.85);
+    stroke-width: 3px;
+    stroke-linejoin: round;
+}
+
+/* SNMP link bandwidth pill: kiosk-owned overlay in #status-overlay, drawn by
+   snmp-layer.js at a monitored connection's annotation spot. Text legible on
+   any backdrop via a paint-order stroke halo (same idiom as .status-latency). */
+.snmp-pill-bg   { fill: rgba(20, 24, 30, 0.85); pointer-events: none; }
+.snmp-pill-text {
+    font: 600 13px system-ui, sans-serif;
+    fill: #e6e8eb;
+    pointer-events: none;
+    paint-order: stroke;
+    stroke: rgba(15, 20, 30, 0.85);
+    stroke-width: 3px;
+    stroke-linejoin: round;
+}
+.snmp-pill.stale .snmp-pill-text { fill: #8a8f98; }   /* feed stale: gray the readout */
+
+/* ?annstyle=native: the annotation's own text carries the live value (its
+   font/colors/bg all stay the operator's) - staleness dims it instead of
+   swapping fills, so any custom color grays out proportionally. */
+.snmp-native-stale { opacity: 0.55; }
+
+/* Down link: pulse ONLY. The stroke color is set via the SVG attribute in JS
+   (there is no CSS `stroke` on .connection-line, so the attribute wins) - do
+   NOT add a `stroke:` here or it would override every per-poll recolor. */
+.connection-line.snmp-down { animation: statusPulse 1.4s ease-in-out infinite; }
+
+/* Whole-board desaturation when the feed is stale. */
+#canvas.stale { filter: grayscale(1) brightness(0.75); transition: filter 0.4s; }
+
+/* STALE banner across the top. */
+#stale-banner {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 10000;
+    display: none; padding: 14px 20px;
+    background: #7a1e1e; color: #fff;
+    font: 500 20px/1.3 system-ui, sans-serif; text-align: center;
+    letter-spacing: 0.02em;
+}
+#stale-banner.show { display: block; }
+
+/* HUD: legend + last-updated clock, fixed bottom-left. */
+#kiosk-hud {
+    position: fixed; left: 16px; bottom: 16px; z-index: 9000;
+    display: flex; gap: 18px; align-items: center;
+    padding: 10px 14px; border-radius: 10px;
+    background: rgba(20, 24, 30, 0.85); color: #e6e8eb;
+    font: 400 15px/1.2 system-ui, sans-serif;
+}
+#kiosk-hud .legend-item { display: inline-flex; align-items: center; gap: 6px; }
+#kiosk-hud .legend-swatch { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+#kiosk-hud .clock { opacity: 0.75; }
+#kiosk-hud .clock.stale { color: #ff7a7a; opacity: 1; }
+
+/* Down-device list: bottom-right, same chrome as the HUD, grows upward.
+   Anchored at the bottom so adding rows extends it up; shown only when down. */
+#kiosk-down {
+    position: fixed; right: 16px; bottom: 16px; z-index: 9000;
+    display: none; flex-direction: column; gap: 4px;
+    padding: 10px 14px; border-radius: 10px;
+    background: rgba(20, 24, 30, 0.85); color: #e6e8eb;
+    font: 400 15px/1.2 system-ui, sans-serif;
+    text-align: right;
+}
+#kiosk-down.show { display: flex; }
+#kiosk-down .down-title { font-weight: 500; color: #ff7a7a; margin-bottom: 2px; }
+#kiosk-down .down-item { display: flex; align-items: center; justify-content: flex-end; gap: 7px; }
+#kiosk-down .down-dot { width: 9px; height: 9px; border-radius: 50%; background: #d64545; flex: none; }
+#kiosk-down .down-more { opacity: 0.7; font-size: 13px; margin-top: 2px; }

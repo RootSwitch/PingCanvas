@@ -1,0 +1,97 @@
+{
+  "version": 6,
+  "appVersion": "4.0.0",
+  "diagramTitle": "snmp-demo",
+  "diagramVersion": 1,
+  "devices": [
+    {
+      "id": 1,
+      "label": "EdgeSw-01",
+      "x": 100, "y": 100, "w": 60, "h": 60,
+      "fields": { "Hostname": "EdgeSw-01", "IP-Address": "203.0.113.10" },
+      "attachmentPoints": [
+        { "rx": 0, "ry": 0 }, { "rx": 30, "ry": 0 }, { "rx": 60, "ry": 0 }, { "rx": 60, "ry": 30 },
+        { "rx": 60, "ry": 60 }, { "rx": 30, "ry": 60 }, { "rx": 0, "ry": 60 }, { "rx": 0, "ry": 30 }
+      ],
+      "fontSize": 20, "labelPosition": "bottom", "tintColor": null
+    },
+    {
+      "id": 2,
+      "label": "CoreRtr-02",
+      "x": 460, "y": 100, "w": 60, "h": 60,
+      "fields": { "Hostname": "CoreRtr-02", "IP-Address": "203.0.113.20" },
+      "attachmentPoints": [
+        { "rx": 0, "ry": 0 }, { "rx": 30, "ry": 0 }, { "rx": 60, "ry": 0 }, { "rx": 60, "ry": 30 },
+        { "rx": 60, "ry": 60 }, { "rx": 30, "ry": 60 }, { "rx": 0, "ry": 60 }, { "rx": 0, "ry": 30 }
+      ],
+      "fontSize": 20, "labelPosition": "bottom", "tintColor": null
+    },
+    {
+      "id": 3,
+      "label": "Server-A\n{H4TN}\n{D8YK}",
+      "x": 100, "y": 360, "w": 60, "h": 60,
+      "fields": { "Hostname": "Server-A", "IP-Address": "203.0.113.30" },
+      "attachmentPoints": [
+        { "rx": 0, "ry": 0 }, { "rx": 30, "ry": 0 }, { "rx": 60, "ry": 0 }, { "rx": 60, "ry": 30 },
+        { "rx": 60, "ry": 60 }, { "rx": 30, "ry": 60 }, { "rx": 0, "ry": 60 }, { "rx": 0, "ry": 30 }
+      ],
+      "fontSize": 16, "labelPosition": "bottom", "tintColor": null,
+      "spans": [
+        [ { "text": "Server-A", "bold": false, "italic": false } ],
+        [ { "text": "{H4TN}", "bold": false, "italic": false } ],
+        [ { "text": "{D8YK}", "bold": false, "italic": false } ]
+      ]
+    },
+    {
+      "id": 4,
+      "label": "Server-B\n{H7VC}\n{M2LP} / {G6QB}",
+      "x": 460, "y": 360, "w": 60, "h": 60,
+      "fields": { "Hostname": "Server-B", "IP-Address": "203.0.113.40" },
+      "attachmentPoints": [
+        { "rx": 0, "ry": 0 }, { "rx": 30, "ry": 0 }, { "rx": 60, "ry": 0 }, { "rx": 60, "ry": 30 },
+        { "rx": 60, "ry": 60 }, { "rx": 30, "ry": 60 }, { "rx": 0, "ry": 60 }, { "rx": 0, "ry": 30 }
+      ],
+      "fontSize": 16, "labelPosition": "bottom", "tintColor": null,
+      "spans": [
+        [ { "text": "Server-B", "bold": false, "italic": false } ],
+        [ { "text": "{H7VC}", "bold": false, "italic": false } ],
+        [ { "text": "{M2LP} / {G6QB}", "bold": false, "italic": false } ]
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "c1", "fromDevice": 1, "fromAP": 3, "toDevice": 2, "toAP": 7,
+      "color": "#3b7dd8", "thickness": 3, "dash": "solid", "routing": "rounded",
+      "label": "", "labelPosition": "top", "labelVAlign": "top", "fontSize": 16, "fontColor": "#333333",
+      "lineFormats": [], "spans": [], "startArrow": "none", "endArrow": "none", "arrowScale": 1,
+      "annotations": [ { "id": "a1", "text": "EdgeSw-01:Uplink-1", "position": 0.5, "fontSize": 14, "fontColor": "#333333",
+        "spans": [ [ { "text": "EdgeSw-01:Uplink-1", "bold": false, "italic": false } ] ] } ]
+    },
+    {
+      "id": "c2", "fromDevice": 1, "fromAP": 5, "toDevice": 3, "toAP": 1,
+      "color": "#3b7dd8", "thickness": 3, "dash": "solid", "routing": "rounded",
+      "label": "", "labelPosition": "top", "labelVAlign": "top", "fontSize": 16, "fontColor": "#333333",
+      "lineFormats": [], "spans": [], "startArrow": "none", "endArrow": "none", "arrowScale": 1,
+      "annotations": [ { "id": "a2", "text": "M4XR", "position": 0.5, "fontSize": 14, "fontColor": "#333333",
+        "spans": [ [ { "text": "M4XR", "bold": false, "italic": false } ] ] } ]
+    },
+    {
+      "id": "c3", "fromDevice": 2, "fromAP": 5, "toDevice": 4, "toAP": 1,
+      "color": "#3b7dd8", "thickness": 3, "dash": "solid", "routing": "rounded",
+      "label": "", "labelPosition": "top", "labelVAlign": "top", "fontSize": 16, "fontColor": "#333333",
+      "lineFormats": [], "spans": [], "startArrow": "none", "endArrow": "none", "arrowScale": 1,
+      "annotations": [ { "id": "a3", "text": "CoreRtr-02:WAN-2", "position": 0.5, "fontSize": 14, "fontColor": "#333333",
+        "spans": [ [ { "text": "CoreRtr-02:WAN-2", "bold": false, "italic": false } ] ] } ]
+    },
+    {
+      "id": "c4", "fromDevice": 3, "fromAP": 3, "toDevice": 4, "toAP": 7,
+      "color": "#3b7dd8", "thickness": 3, "dash": "solid", "routing": "rounded",
+      "label": "", "labelPosition": "top", "labelVAlign": "top", "fontSize": 16, "fontColor": "#333333",
+      "lineFormats": [], "spans": [], "startArrow": "none", "endArrow": "none", "arrowScale": 1,
+      "annotations": [ { "id": "a4", "text": "CoreRtr-02:Sensor-Net", "position": 0.5, "fontSize": 14, "fontColor": "#333333",
+        "spans": [ [ { "text": "CoreRtr-02:Sensor-Net", "bold": false, "italic": false } ] ] } ]
+    }
+  ],
+  "zones": [], "textBoxes": [], "images": [], "groups": [], "deviceTemplates": [], "imageTable": {}, "nextId": 56
+}

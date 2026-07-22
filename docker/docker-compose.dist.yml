@@ -1,0 +1,52 @@
+# PingCanvas - distribution compose (runs PRE-BUILT images, no source needed).
+# For recipients who loaded an offline tarball (docker load < pingcanvas-*.tar.gz)
+# or pulled from a registry. See QUICKSTART.txt.
+#
+#   docker load < pingcanvas-<version>-<arch>.tar.gz
+#   mkdir -p data           # draw a board in the editor, save it to ./data/board.xcanvas
+#   docker compose up -d     # images are tagged :latest, so no version to set
+#
+#   Editor : http://<host>:8080/index.html
+#   NOC view: http://<host>:8080/kiosk.html?board=data/board.xcanvas&status=data/status.json
+name: pingcanvas
+
+# Cap container logs so an unattended box can't fill its disk (Docker's default
+# json-file driver never rotates). Status files are overwritten, not appended -
+# this is only for stdout/stderr. 10 MB x 5 = 50 MB per service.
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "5"
+
+services:
+  web:
+    image: pingcanvas-web:${PINGCANVAS_VERSION:-latest}
+    ports:
+      - "8080:80"
+      - "8443:443"                             # HTTPS - only listens once ./certs has a cert
+    volumes:
+      # ',z' relabels for SELinux hosts (Rocky/RHEL/Fedora); no-op elsewhere.
+      - ./data:/usr/share/nginx/html/data:ro,z
+      - ./certs:/etc/nginx/certs:ro,z            # drop fullchain.pem + privkey.pem here to enable HTTPS
+    # environment:
+    #   PINGCANVAS_TLS_REDIRECT: "1"            # optional: :80 -> HTTPS redirect (only with 443:443 above)
+    logging: *default-logging
+    restart: unless-stopped
+
+  poller:
+    image: pingcanvas-poller:${PINGCANVAS_VERSION:-latest}
+    volumes:
+      - ./data:/data:z
+    environment:
+      DATA_DIR: /data
+      POLL_INTERVAL_SEC: "30"
+      TIMEOUT_MS: "1000"
+      DEGRADED_MS: "150"
+      THROTTLE: "100"
+      COMBINED: "1"
+    cap_add:
+      - NET_RAW
+    network_mode: host       # Linux; drop on Docker Desktop (Mac/Win)
+    logging: *default-logging
+    restart: unless-stopped

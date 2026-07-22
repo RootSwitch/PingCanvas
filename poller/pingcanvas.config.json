@@ -1,0 +1,11 @@
+{
+  "pollIntervalSec": 30,
+  "timeoutMs": 1000,
+  "degradedMs": 150,
+  "throttleLimit": 100,
+  "outputDir": "../web",
+  "combinedStatus": "status-all.json",
+  "boards": [
+    { "file": "../web/board.xcanvas", "status": "status.json" }
+  ]
+}

@@ -1,0 +1,10 @@
+# Files that execute on Linux / inside containers must stay LF, or a CRLF
+# shebang/parse breaks them ("bad interpreter: /usr/bin/env bash^M").
+*.sh                 text eol=lf
+*.ps1                text eol=lf
+Dockerfile*          text eol=lf
+*.conf               text eol=lf
+docker-compose.yml   text eol=lf
+*.xcanvas            text eol=lf
+*.netdraw            text eol=lf
+*.json               text eol=lf

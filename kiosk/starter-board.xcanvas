@@ -1,0 +1,626 @@
+{
+  "version": 6,
+  "appVersion": "4.0.0",
+  "savedAt": "2026-07-13T02:32:32.863Z",
+  "diagramTitle": "starter-board",
+  "diagramVersion": 2,
+  "devices": [
+    {
+      "id": "d1",
+      "templateId": "d6",
+      "image": "@Client",
+      "originalImage": "@Client",
+      "x": 130,
+      "y": 430,
+      "w": 60,
+      "h": 60,
+      "label": "Example-PC\n(Unmonitored)",
+      "labelPosition": "bottom",
+      "fontSize": 14,
+      "fontColor": "#333333",
+      "lineFormats": [
+        {
+          "bold": false,
+          "italic": false
+        },
+        {
+          "bold": true,
+          "italic": false
+        }
+      ],
+      "spans": [
+        [
+          {
+            "text": "Example-PC",
+            "bold": false,
+            "italic": false
+          }
+        ],
+        [
+          {
+            "text": "(Unmonitored)",
+            "bold": true,
+            "italic": false
+          }
+        ]
+      ],
+      "tintColor": null,
+      "attachmentPoints": [
+        {
+          "rx": 0,
+          "ry": 0
+        },
+        {
+          "rx": 30,
+          "ry": 0
+        },
+        {
+          "rx": 60,
+          "ry": 0
+        },
+        {
+          "rx": 60,
+          "ry": 30
+        },
+        {
+          "rx": 60,
+          "ry": 60
+        },
+        {
+          "rx": 30,
+          "ry": 60
+        },
+        {
+          "rx": 0,
+          "ry": 60
+        },
+        {
+          "rx": 0,
+          "ry": 30
+        }
+      ]
+    },
+    {
+      "id": "d56",
+      "templateId": "d46",
+      "image": "@Switch",
+      "originalImage": "@Switch",
+      "x": 263,
+      "y": 430,
+      "w": 60,
+      "h": 60,
+      "label": "Example-Switch\n(Unmonitored)",
+      "labelPosition": "bottom",
+      "fontSize": 14,
+      "fontColor": "#333333",
+      "lineFormats": [
+        {
+          "bold": false,
+          "italic": false
+        },
+        {
+          "bold": true,
+          "italic": false
+        }
+      ],
+      "spans": [
+        [
+          {
+            "text": "Example-Switch",
+            "bold": false,
+            "italic": false
+          }
+        ],
+        [
+          {
+            "text": "(Unmonitored)",
+            "bold": true,
+            "italic": false
+          }
+        ]
+      ],
+      "tintColor": null,
+      "attachmentPoints": [
+        {
+          "rx": 0,
+          "ry": 0
+        },
+        {
+          "rx": 30,
+          "ry": 0
+        },
+        {
+          "rx": 60,
+          "ry": 0
+        },
+        {
+          "rx": 60,
+          "ry": 30
+        },
+        {
+          "rx": 60,
+          "ry": 60
+        },
+        {
+          "rx": 30,
+          "ry": 60
+        },
+        {
+          "rx": 0,
+          "ry": 60
+        },
+        {
+          "rx": 0,
+          "ry": 30
+        }
+      ]
+    },
+    {
+      "id": "d57",
+      "templateId": "d16",
+      "image": "@Firewall",
+      "originalImage": "@Firewall",
+      "x": 397,
+      "y": 430,
+      "w": 60,
+      "h": 60,
+      "label": "Example-Firewall\n(Unmonitored)",
+      "labelPosition": "bottom",
+      "fontSize": 14,
+      "fontColor": "#333333",
+      "lineFormats": [
+        {
+          "bold": false,
+          "italic": false
+        },
+        {
+          "bold": true,
+          "italic": false
+        }
+      ],
+      "spans": [
+        [
+          {
+            "text": "Example-Firewall",
+            "bold": false,
+            "italic": false
+          }
+        ],
+        [
+          {
+            "text": "(Unmonitored)",
+            "bold": true,
+            "italic": false
+          }
+        ]
+      ],
+      "tintColor": null,
+      "attachmentPoints": [
+        {
+          "rx": 0,
+          "ry": 0
+        },
+        {
+          "rx": 30,
+          "ry": 0
+        },
+        {
+          "rx": 60,
+          "ry": 0
+        },
+        {
+          "rx": 60,
+          "ry": 30
+        },
+        {
+          "rx": 60,
+          "ry": 60
+        },
+        {
+          "rx": 30,
+          "ry": 60
+        },
+        {
+          "rx": 0,
+          "ry": 60
+        },
+        {
+          "rx": 0,
+          "ry": 30
+        }
+      ]
+    },
+    {
+      "id": "d62",
+      "templateId": "d17",
+      "image": "@Globe",
+      "originalImage": "@Globe",
+      "x": 530,
+      "y": 430,
+      "w": 60,
+      "h": 60,
+      "label": "Internet\n(Unmonitored)",
+      "labelPosition": "bottom",
+      "fontSize": 14,
+      "fontColor": "#333333",
+      "lineFormats": [
+        {
+          "bold": false,
+          "italic": false
+        },
+        {
+          "bold": true,
+          "italic": false
+        }
+      ],
+      "spans": [
+        [
+          {
+            "text": "Internet",
+            "bold": false,
+            "italic": false
+          }
+        ],
+        [
+          {
+            "text": "(Unmonitored)",
+            "bold": true,
+            "italic": false
+          }
+        ]
+      ],
+      "tintColor": null,
+      "attachmentPoints": [
+        {
+          "rx": 0,
+          "ry": 0
+        },
+        {
+          "rx": 30,
+          "ry": 0
+        },
+        {
+          "rx": 60,
+          "ry": 0
+        },
+        {
+          "rx": 60,
+          "ry": 30
+        },
+        {
+          "rx": 60,
+          "ry": 60
+        },
+        {
+          "rx": 30,
+          "ry": 60
+        },
+        {
+          "rx": 0,
+          "ry": 60
+        },
+        {
+          "rx": 0,
+          "ry": 30
+        }
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "d58",
+      "fromDevice": "d1",
+      "fromAP": 3,
+      "fromPoint": null,
+      "toDevice": "d56",
+      "toAP": 7,
+      "toPoint": null,
+      "color": "#333333",
+      "thickness": 4,
+      "dash": "solid",
+      "routing": "rounded",
+      "label": "",
+      "labelPosition": "top",
+      "fontSize": 16,
+      "fontColor": "#333333",
+      "lineFormats": [],
+      "spans": [],
+      "startArrow": "none",
+      "endArrow": "none",
+      "arrowScale": 1,
+      "annotations": []
+    },
+    {
+      "id": "d59",
+      "fromDevice": "d56",
+      "fromAP": 3,
+      "fromPoint": null,
+      "toDevice": "d57",
+      "toAP": 7,
+      "toPoint": null,
+      "color": "#333333",
+      "thickness": 4,
+      "dash": "solid",
+      "routing": "rounded",
+      "label": "",
+      "labelPosition": "top",
+      "fontSize": 16,
+      "fontColor": "#333333",
+      "lineFormats": [],
+      "spans": [],
+      "startArrow": "none",
+      "endArrow": "none",
+      "arrowScale": 1,
+      "annotations": []
+    },
+    {
+      "id": "d63",
+      "fromDevice": "d57",
+      "fromAP": 3,
+      "fromPoint": null,
+      "toDevice": "d62",
+      "toAP": 7,
+      "toPoint": null,
+      "color": "#333333",
+      "thickness": 4,
+      "dash": "solid",
+      "routing": "rounded",
+      "label": "",
+      "labelPosition": "top",
+      "fontSize": 16,
+      "fontColor": "#333333",
+      "lineFormats": [],
+      "spans": [],
+      "startArrow": "none",
+      "endArrow": "none",
+      "arrowScale": 1,
+      "annotations": []
+    }
+  ],
+  "zones": [
+    {
+      "id": "d2",
+      "shape": "rectangle",
+      "x": 90,
+      "y": 370,
+      "w": 530,
+      "h": 180,
+      "label": "Example Diagram",
+      "labelPosition": "top-inside",
+      "labelVAlign": "top",
+      "fontSize": 15,
+      "fontColor": "#2d67b9",
+      "lineFormats": [
+        {
+          "bold": true,
+          "italic": false
+        }
+      ],
+      "spans": [
+        [
+          {
+            "text": "Example Diagram",
+            "bold": true,
+            "italic": false
+          }
+        ]
+      ],
+      "fill": "#e8f4fd",
+      "borderColor": "#2d67b9",
+      "opacity": 1,
+      "attachmentPoints": []
+    }
+  ],
+  "textBoxes": [
+    {
+      "id": "d3",
+      "x": 80,
+      "y": 40,
+      "text": "PingCanvas - No Board Loaded",
+      "fontSize": 26,
+      "fontColor": "#000000",
+      "textAlign": "left",
+      "lineFormats": [
+        {
+          "bold": true,
+          "italic": false
+        }
+      ],
+      "spans": [
+        [
+          {
+            "text": "PingCanvas - No Board Loaded",
+            "bold": true,
+            "italic": false
+          }
+        ]
+      ]
+    },
+    {
+      "id": "d4",
+      "x": 80,
+      "y": 100,
+      "text": "This message indicates you haven't loaded any .xcanvas files into the PingCanvas web folder.\n\n1. Open the editor (index.html) and draw your network - or File → Load Sample.\n2. Add an IP address to each device you want monitored. (Device Details)\n3. Save, and place the file as board.xcanvas in the data folder\nWindows: C:\\PingCanvas\\web\nDocker: ./data\nIIS: Site Root (e.g. C:\\inetpub\\wwwroot )\n4. Make sure the poller is running:\nDocker: docker compose up \nWindows: Check scheduled task\nThe poller pings your devices and writes the results back to a status file.\nOnce the poller has started and a .xcanvas in place, refresh this page.",
+      "fontSize": 15,
+      "fontColor": "#000000",
+      "textAlign": "left",
+      "lineFormats": [
+        {
+          "bold": true,
+          "italic": false
+        },
+        {
+          "bold": false,
+          "italic": false
+        },
+        {
+          "bold": false,
+          "italic": false
+        },
+        {
+          "bold": false,
+          "italic": false
+        },
+        {
+          "bold": false,
+          "italic": false
+        },
+        {
+          "bold": false,
+          "italic": false
+        },
+        {
+          "bold": false,
+          "italic": false
+        },
+        {
+          "bold": false,
+          "italic": false
+        },
+        {
+          "bold": false,
+          "italic": false
+        },
+        {
+          "bold": false,
+          "italic": false
+        },
+        {
+          "bold": false,
+          "italic": false
+        },
+        {
+          "bold": false,
+          "italic": false
+        },
+        {
+          "bold": false,
+          "italic": false
+        }
+      ],
+      "spans": [
+        [
+          {
+            "text": "This message indicates you haven't loaded any .xcanvas files into the PingCanvas web folder.",
+            "bold": true,
+            "italic": false
+          }
+        ],
+        [
+          {
+            "text": "",
+            "bold": false,
+            "italic": false
+          }
+        ],
+        [
+          {
+            "text": "1. Open the editor (index.html) and draw your network - or File → Load Sample.",
+            "bold": false,
+            "italic": false
+          }
+        ],
+        [
+          {
+            "text": "2. Add an IP address to each device you want monitored. (Device Details)",
+            "bold": false,
+            "italic": false
+          }
+        ],
+        [
+          {
+            "text": "3. Save, and place the file as board.xcanvas in the data folder",
+            "bold": false,
+            "italic": false
+          }
+        ],
+        [
+          {
+            "text": "Windows",
+            "bold": true,
+            "italic": false
+          },
+          {
+            "text": ": C:\\PingCanvas\\web",
+            "bold": false,
+            "italic": false
+          }
+        ],
+        [
+          {
+            "text": "Docker",
+            "bold": true,
+            "italic": false
+          },
+          {
+            "text": ": ./data",
+            "bold": false,
+            "italic": false
+          }
+        ],
+        [
+          {
+            "text": "IIS",
+            "bold": true,
+            "italic": false
+          },
+          {
+            "text": ": Site Root (e.g. C:\\inetpub\\wwwroot )",
+            "bold": false,
+            "italic": false
+          }
+        ],
+        [
+          {
+            "text": "4. Make sure the poller is running:",
+            "bold": false,
+            "italic": false
+          }
+        ],
+        [
+          {
+            "text": "Docker",
+            "bold": true,
+            "italic": false
+          },
+          {
+            "text": ": docker compose up ",
+            "bold": false,
+            "italic": false
+          }
+        ],
+        [
+          {
+            "text": "Windows",
+            "bold": true,
+            "italic": false
+          },
+          {
+            "text": ": Check scheduled task",
+            "bold": false,
+            "italic": false
+          }
+        ],
+        [
+          {
+            "text": "The poller pings your devices and writes the results back to a status file.",
+            "bold": false,
+            "italic": false
+          }
+        ],
+        [
+          {
+            "text": "Once the poller has started and a .xcanvas in place, refresh this page.",
+            "bold": false,
+            "italic": false
+          }
+        ]
+      ]
+    }
+  ],
+  "images": [],
+  "groups": [],
+  "deviceTemplates": [],
+  "imageTable": {},
+  "nextId": 64
+}

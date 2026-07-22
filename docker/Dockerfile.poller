@@ -1,0 +1,13 @@
+# PingCanvas poller - PowerShell (Linux) running the unchanged poller on a loop,
+# auto-discovering boards from /data. Build context is the repo root.
+FROM mcr.microsoft.com/powershell:latest
+WORKDIR /app
+COPY poller/pingcanvas-poller.ps1 /app/pingcanvas-poller.ps1
+COPY docker/docker-entrypoint.ps1 /app/docker-entrypoint.ps1
+COPY docker/poller-healthcheck.ps1 /app/poller-healthcheck.ps1
+# The poller writes no HTTP endpoint, so health = "did a poll cycle complete
+# recently" via the /tmp heartbeat the entrypoint touches each loop. Matches the
+# health posture the Node apps already ship.
+HEALTHCHECK --interval=30s --timeout=15s --start-period=90s --retries=3 \
+    CMD ["pwsh", "-NoProfile", "-File", "/app/poller-healthcheck.ps1"]
+ENTRYPOINT ["pwsh", "-NoProfile", "-File", "/app/docker-entrypoint.ps1"]

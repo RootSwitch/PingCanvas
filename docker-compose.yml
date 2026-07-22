@@ -1,0 +1,65 @@
+# PingCanvas - diagram editor + live NOC wall in one small package.
+#
+#   1. docker/build-web.ps1   (assembles docker/web/ from a CrossCanvas checkout)
+#   2. mkdir data && cp your board.xcanvas into ./data
+#   3. docker compose up -d
+#
+#   Editor : http://<host>:8080/index.html
+#   NOC view: http://<host>:8080/kiosk.html?board=data/board.xcanvas&status=data/status.json
+#
+# Boards + status live in ./data (a bind mount) - replacing a board is hot, and
+# `docker compose pull && up -d` upgrades the apps without touching your data.
+name: pingcanvas
+
+# Cap container logs so an unattended box can't slowly fill its disk - Docker's
+# default json-file driver never rotates. (Status files are overwritten each
+# cycle and don't grow; this is only for stdout/stderr: nginx access lines per
+# kiosk poll, plus any recurring poller warnings.) 10 MB x 5 = 50 MB per service.
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "5"
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.web
+    image: pingcanvas-web
+    ports:
+      - "8080:80"
+      - "8443:443"                             # HTTPS - only listens once ./certs has a cert
+    volumes:
+      # ',z' relabels for container access on SELinux hosts (Rocky/RHEL/Fedora
+      # enforce by default; without it the mounts read as Permission denied).
+      # Lowercase z = shared label, both containers use ./data. No-op elsewhere.
+      - ./data:/usr/share/nginx/html/data:ro,z   # read-only: web tier can't mutate state
+      - ./certs:/etc/nginx/certs:ro,z            # drop fullchain.pem + privkey.pem here to enable HTTPS
+    # environment:
+    #   PINGCANVAS_TLS_REDIRECT: "1"            # optional: :80 -> HTTPS redirect (only with 443:443 above)
+    logging: *default-logging
+    restart: unless-stopped
+
+  poller:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.poller
+    image: pingcanvas-poller
+    volumes:
+      - ./data:/data:z                          # read boards, write status*.json
+    environment:
+      DATA_DIR: /data
+      POLL_INTERVAL_SEC: "30"
+      TIMEOUT_MS: "1000"
+      DEGRADED_MS: "150"
+      THROTTLE: "100"
+      COMBINED: "1"
+    cap_add:
+      - NET_RAW                                 # ICMP (ping) needs raw sockets
+    # host networking so the poller can reach the monitored management segment
+    # and ping by IP. Linux only; on Docker Desktop (Mac/Win) drop this line and
+    # rely on bridge routing. THIS is the one setting to get right per site.
+    network_mode: host
+    logging: *default-logging
+    restart: unless-stopped
