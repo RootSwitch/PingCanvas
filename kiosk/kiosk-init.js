@@ -547,17 +547,20 @@
     }, 1000);
 
     // --- boot --------------------------------------------------------------
-    // When no board is configured at all, fall through to the starter board
-    // that ships with the app: an unmonitored example plus place-your-board
-    // instructions, so a fresh install shows guidance instead of a 404. It
-    // never pings anything (no device carries an IP) and the status feed is
-    // not started for it. An explicit ?board= is never second-guessed.
+    // When the board is ABSENT (404), fall through to the starter board that
+    // ships with the app: an unmonitored example plus place-your-board
+    // instructions, so a fresh install shows guidance instead of an error.
+    // That now includes an explicit ?board= that 404s - the suite's launcher
+    // tile and setup script wire ?board=data/board.xcanvas from day one, so
+    // a brand-new box hits that URL before any board has been uploaded. To
+    // keep a production wall whose board file VANISHED from masquerading as
+    // a fresh install, the ticker names the missing path in that case.
     //
-    // ABSENT vs BROKEN matters: only a 404 falls through. A board that exists
-    // but fails (HTTP 5xx, invalid JSON from a truncated copy, network error)
-    // must fail LOUDLY with its own name - a production wall whose board got
-    // corrupted must not masquerade as a fresh install.
+    // ABSENT vs BROKEN still matters: only a 404 falls through. A board that
+    // exists but fails (HTTP 5xx, invalid JSON from a truncated copy,
+    // network error) must fail LOUDLY with its own name.
     var starterActive = false;
+    var missingBoardPath = null;   // explicit ?board= that 404'd (absent, not broken)
     function fetchBoardJson(url) {
         return fetch(url, { cache: 'no-store' }).then(function (r) {
             if (!r.ok) {
@@ -570,19 +573,29 @@
             });
         });
     }
+    function starterOrDie() {
+        return fetchBoardJson('starter-board.xcanvas').catch(function () {
+            // Starter missing too (partial deploy): report the board
+            // the operator needs to create, not our fallback file.
+            throw new Error('not found - place a board file here (the bundled starter board is also missing from this deployment)');
+        });
+    }
     fetchBoardJson(boardUrl)
         .catch(function (err) {
+            if (!err.missing) { throw err; }            // BROKEN: always loud
+            if (!legacyBoardUrl) {
+                // Explicit ?board= that is absent: starter guidance, but
+                // remember the path so the ticker can name it.
+                starterActive = true;
+                missingBoardPath = boardUrl;
+                return starterOrDie();
+            }
             // Default-board fallback only: data folders from before the rename
             // hold board.netdraw, and an unconfigured wall should keep working.
-            if (!legacyBoardUrl || !err.missing) { throw err; }
             return fetchBoardJson(legacyBoardUrl).catch(function (err2) {
                 if (!err2.missing) { boardUrl = legacyBoardUrl; throw err2; }
                 starterActive = true;
-                return fetchBoardJson('starter-board.xcanvas').catch(function () {
-                    // Starter missing too (partial deploy): report the board
-                    // the operator needs to create, not our fallback file.
-                    throw new Error('not found - place a board file here (the bundled starter board is also missing from this deployment)');
-                });
+                return starterOrDie();
             });
         })
         .then(function (data) {
@@ -618,7 +631,9 @@
             // only raise a misleading stale banner. Park the clock instead.
             if (starterActive) {
                 document.title = 'PingCanvas - Get Started';
-                clock.textContent = 'starter board - nothing is monitored yet';
+                clock.textContent = missingBoardPath
+                    ? 'no board at ' + missingBoardPath + ' yet'
+                    : 'starter board - nothing is monitored yet';
                 return;
             }
 
