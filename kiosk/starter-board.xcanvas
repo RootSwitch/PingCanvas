@@ -440,7 +440,7 @@
       "id": "d4",
       "x": 80,
       "y": 100,
-      "text": "This message indicates you haven't loaded any .xcanvas files into the PingCanvas web folder.\n\n1. Open the editor (index.html) and draw your network - or File → Load Sample.\n2. Add an IP address to each device you want monitored. (Device Details)\n3. Save, and place the file as board.xcanvas in the data folder\nWindows: C:\\PingCanvas\\web\nDocker: ./data\nIIS: Site Root (e.g. C:\\inetpub\\wwwroot )\n4. Make sure the poller is running:\nDocker: docker compose up \nWindows: Check scheduled task\nThe poller pings your devices and writes the results back to a status file.\nOnce the poller has started and a .xcanvas in place, refresh this page.",
+      "text": "No board is loaded yet - this wall needs a diagram to monitor.\n\nFull suite: log into LaunchCanvas (port 9160) and use Wall board → Upload board.\nAn .xcanvas exported from CrossCanvas lands exactly where this kiosk reads it,\nand the portal's Quickstart walks the whole ten minutes.\n\nBy hand (CrossCanvas + PingCanvas only):\n1. Open the editor (index.html) and draw your network - or File → Import Diagram.\n2. Add an IP address to each device you want monitored. (Device Details)\n3. Save, and place the file as board.xcanvas in the data folder:\nDocker: ./data    Windows: C:\\PingCanvas\\web    IIS: site root (C:\\inetpub\\wwwroot)\n4. Make sure the poller is running (docker compose up / the scheduled task) -\nit pings your devices and writes the status file. Then refresh this page.",
       "fontSize": 15,
       "fontColor": "#000000",
       "textAlign": "left",
@@ -470,7 +470,7 @@
           "italic": false
         },
         {
-          "bold": false,
+          "bold": true,
           "italic": false
         },
         {
@@ -501,7 +501,7 @@
       "spans": [
         [
           {
-            "text": "This message indicates you haven't loaded any .xcanvas files into the PingCanvas web folder.",
+            "text": "No board is loaded yet - this wall needs a diagram to monitor.",
             "bold": true,
             "italic": false
           }
@@ -515,7 +515,47 @@
         ],
         [
           {
-            "text": "1. Open the editor (index.html) and draw your network - or File → Load Sample.",
+            "text": "Full suite",
+            "bold": true,
+            "italic": false
+          },
+          {
+            "text": ": log into LaunchCanvas (port 9160) and use Wall board → Upload board.",
+            "bold": false,
+            "italic": false
+          }
+        ],
+        [
+          {
+            "text": "An .xcanvas exported from CrossCanvas lands exactly where this kiosk reads it,",
+            "bold": false,
+            "italic": false
+          }
+        ],
+        [
+          {
+            "text": "and the portal's Quickstart walks the whole ten minutes.",
+            "bold": false,
+            "italic": false
+          }
+        ],
+        [
+          {
+            "text": "",
+            "bold": false,
+            "italic": false
+          }
+        ],
+        [
+          {
+            "text": "By hand (CrossCanvas + PingCanvas only):",
+            "bold": true,
+            "italic": false
+          }
+        ],
+        [
+          {
+            "text": "1. Open the editor (index.html) and draw your network - or File → Import Diagram.",
             "bold": false,
             "italic": false
           }
@@ -529,19 +569,7 @@
         ],
         [
           {
-            "text": "3. Save, and place the file as board.xcanvas in the data folder",
-            "bold": false,
-            "italic": false
-          }
-        ],
-        [
-          {
-            "text": "Windows",
-            "bold": true,
-            "italic": false
-          },
-          {
-            "text": ": C:\\PingCanvas\\web",
+            "text": "3. Save, and place the file as board.xcanvas in the data folder:",
             "bold": false,
             "italic": false
           }
@@ -553,64 +581,41 @@
             "italic": false
           },
           {
-            "text": ": ./data",
+            "text": ": ./data    ",
             "bold": false,
             "italic": false
-          }
-        ],
-        [
+          },
+          {
+            "text": "Windows",
+            "bold": true,
+            "italic": false
+          },
+          {
+            "text": ": C:\\PingCanvas\\web    ",
+            "bold": false,
+            "italic": false
+          },
           {
             "text": "IIS",
             "bold": true,
             "italic": false
           },
           {
-            "text": ": Site Root (e.g. C:\\inetpub\\wwwroot )",
+            "text": ": site root (C:\\inetpub\\wwwroot)",
             "bold": false,
             "italic": false
           }
         ],
         [
           {
-            "text": "4. Make sure the poller is running:",
+            "text": "4. Make sure the poller is running (docker compose up / the scheduled task) -",
             "bold": false,
             "italic": false
           }
         ],
         [
           {
-            "text": "Docker",
-            "bold": true,
-            "italic": false
-          },
-          {
-            "text": ": docker compose up ",
-            "bold": false,
-            "italic": false
-          }
-        ],
-        [
-          {
-            "text": "Windows",
-            "bold": true,
-            "italic": false
-          },
-          {
-            "text": ": Check scheduled task",
-            "bold": false,
-            "italic": false
-          }
-        ],
-        [
-          {
-            "text": "The poller pings your devices and writes the results back to a status file.",
-            "bold": false,
-            "italic": false
-          }
-        ],
-        [
-          {
-            "text": "Once the poller has started and a .xcanvas in place, refresh this page.",
+            "text": "it pings your devices and writes the status file. Then refresh this page.",
             "bold": false,
             "italic": false
           }
