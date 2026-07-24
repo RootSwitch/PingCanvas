@@ -99,6 +99,9 @@ $html = $html.Replace($anchApp,
 # Kiosk tab gets its own icon (best-effort - cosmetic, so no hard anchor check:
 # if CrossCanvas reshapes its favicon link, the kiosk just shares the editor icon).
 $html = $html.Replace('href="favicon.svg"', 'href="kiosk-favicon.svg"')
+# Kiosk tab title (mirrors build-web.sh): best-effort like the favicon - a
+# no-match just keeps the editor title until a board loads.
+$html = $html.Replace('<title>CrossCanvas Diagram Editor</title>', '<title>PingCanvas</title>')
 $utf8 = New-Object System.Text.UTF8Encoding($false)
 [System.IO.File]::WriteAllText((Join-Path $Out 'kiosk.html'), $html, $utf8)
 

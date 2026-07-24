@@ -100,6 +100,8 @@ kiosk-init.js
 status-layer.js
 snmp-layer.js       <- optional SNMP link overlay (only used when ?snmp= is set)
 kiosk.css
+kiosk-favicon.svg
+starter-board.xcanvas  <- the getting-started board shown when no board exists yet
 web.config          <- IIS only: serves .xcanvas as JSON (fetch 404s without it)
 ```
 

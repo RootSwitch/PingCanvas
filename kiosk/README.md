@@ -14,6 +14,7 @@ itself comes from CrossCanvas.
 | `snmp-layer.js`   | ready  | Optional SNMP link overlay (bandwidth + up/down on connections)  |
 | `kiosk.css`       | ready  | Status ring, stale banner, HUD, chrome-hiding, inert canvas      |
 | `web.config`      | ready  | IIS static hosting (`.xcanvas` MIME map)                          |
+| `kiosk-favicon.svg` `starter-board.xcanvas` | ready | Kiosk tab icon; the getting-started board shown when no board exists |
 | `app.js` `devices.js` `style.css` `kiosk.html` | synced | **Build artifacts** from `tools/sync-from-crosscanvas.ps1` - gitignored, never edited here |
 
 ## How it stays in sync with CrossCanvas

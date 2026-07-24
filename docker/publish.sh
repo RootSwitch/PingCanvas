@@ -59,7 +59,12 @@ for arch in "${ARCHES[@]}"; do
     fi
     docker buildx build --platform "$platform" -f "$SCRIPT_DIR/Dockerfile.web" \
         "${webTags[@]}" --load "$REPO_ROOT"
-    docker buildx build --platform "$platform" -f "$SCRIPT_DIR/Dockerfile.poller" \
+    # The PowerShell base image publishes no arm64 build; its arm/v7 build
+    # runs natively on 64-bit ARM kernels (how the compose path works on a
+    # Pi), so the poller's arm64 target builds as arm/v7 instead of failing.
+    pollerPlatform="$platform"
+    [ "$arch" = "arm64" ] && pollerPlatform="linux/arm/v7"
+    docker buildx build --platform "$pollerPlatform" -f "$SCRIPT_DIR/Dockerfile.poller" \
         "${pollTags[@]}" --load "$REPO_ROOT"
     archSafe="${arch//\//-}"                    # arm/v7 -> arm-v7 (no slash in the filename)
     tarball="$OUT/pingcanvas${VERSION:+-$VERSION}-$archSafe.tar.gz"

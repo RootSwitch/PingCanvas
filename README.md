@@ -99,6 +99,11 @@ same PC, a NAS path, a container bind mount.
 
 ## Quick start
 
+> **Installed via the [canvas-suite](https://github.com/RootSwitch/canvas-suite)
+> script?** The wall is already built and serving on 8080/8443 with the
+> board at `data/board.xcanvas` - upload new boards from LaunchCanvas
+> rather than repeating the steps below.
+
 **Windows desktop (no Docker, no IIS)** - the recommended first run:
 **[QUICKSTART-WINDOWS.md](QUICKSTART-WINDOWS.md)** takes you from the two
 GitHub ZIP downloads to a live wall: extract both projects into

@@ -167,5 +167,13 @@ layers, license files included, as every `docker save` does.
 - Editor **Save** downloads the file to the user's browser (client-side) - to
   publish a board to the wall, drop the saved file into `./data`. A future
   "publish" button (nginx WebDAV PUT) could close that loop.
-- `docker/web/` is a build artifact (gitignored); re-run `build-web.ps1` after
+- `docker/web/` is a build artifact (gitignored); re-run `build-web.sh` (or `build-web.ps1` on Windows) after
   pulling CrossCanvas changes, then rebuild the image.
+
+## ARM / Raspberry Pi
+
+Everything runs on ARM (tested on a Pi 3B, 64-bit Pi OS). One wrinkle worth
+knowing: the PowerShell base image the poller builds from publishes amd64
+and 32-bit arm/v7 but no arm64 - on a 64-bit ARM box Docker transparently
+selects the arm/v7 build, which the kernel runs natively. Nothing to
+configure; the built image just reports `arm v7`.
