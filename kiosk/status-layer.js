@@ -20,6 +20,7 @@
  *   var feed = new StatusFeed({
  *     url: params.status || 'status.json',
  *     interval: params.interval || null,          // else uses the file's pollIntervalSec
+ *                                                 // (the PRODUCER's rate; fetches run at half it)
  *     staleMul: params.staleMul || 2,
  *     onStatus: applyStatusToBoard,
  *     onStale:  showStaleBanner
@@ -57,9 +58,27 @@
     StatusFeed.prototype.start = function () { this._tick(); };
     StatusFeed.prototype.stop  = function () { if (this._timer) { clearTimeout(this._timer); this._timer = null; } };
 
+    // Two different rates, deliberately.
+    //
+    // _interval is what the POLLER advertises - how often a new status file is
+    // produced - and it is the basis for the staleness threshold. Fetching at
+    // that same rate is the classic sampling mistake: a fetch landing just
+    // before a fresh write leaves the board showing data that ages a further
+    // whole interval before the next fetch, so "updated Ns ago" peaked at 2x
+    // the interval - 60s+ on the default 30s poller, right at the staleMul=2
+    // stale threshold. The wall was healthy and looked like it was drifting.
+    //
+    // Fetching twice per produced file bounds the displayed age at 1.5x the
+    // interval instead, keeping it clearly under the stale threshold. Note the
+    // threshold itself must keep using _interval - halving THAT would fire the
+    // stale banner every cycle on a perfectly healthy poller.
+    StatusFeed.prototype._fetchSec = function () {
+        return Math.max(1, this._interval / 2);
+    };
+
     StatusFeed.prototype._schedule = function () {
         this.stop();
-        this._timer = setTimeout(this._tick.bind(this), this._interval * 1000);
+        this._timer = setTimeout(this._tick.bind(this), this._fetchSec() * 1000);
     };
 
     StatusFeed.prototype._tick = function () {
