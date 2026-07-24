@@ -1,9 +1,14 @@
-# PingCanvas - deployment cheat sheet
+# PingCanvas - Windows / IIS deployment
 
-Copy-paste reference: kiosk URLs, the wwwroot file manifest, and the poller
+Copy-paste reference for the **Windows/IIS** path: kiosk URLs, the wwwroot file manifest, and the poller
 config that ties them together. This is the **kiosk-only** IIS layout - the
 wall without the editor; for a web root serving both apps, assemble it with
 `docker\build-web.ps1` instead (see [QUICKSTART-WINDOWS.md](QUICKSTART-WINDOWS.md)).
+
+**Deploying with Docker on Linux instead?** Start at
+[docker/README.md](docker/README.md) - or let the
+[canvas-suite](https://github.com/RootSwitch/canvas-suite) script do the
+whole thing.
 
 ---
 
@@ -42,30 +47,13 @@ https://<jumpbox>/kiosk.html?board=board-campusB.xcanvas&status=status-all.json
 http://localhost:8080/kiosk.html?board=board.xcanvas&status=status.json
 ```
 
-### All URL parameters
+### URL parameters
 
-| Param      | Default          | Meaning                                            |
-|------------|------------------|----------------------------------------------------|
-| `board`    | `board.xcanvas`  | which diagram to display                           |
-| `status`   | `status.json`    | which status feed to poll                          |
-| `bg`       | white canvas     | solid background color, hex (url-encode `#` as `%23`) or a CSS name |
-| `grid`     | off              | `1` shows the background grid                       |
-| `latency`  | on               | `0` hides the per-device response-time labels       |
-| `interval` | feed's `pollIntervalSec` | override the fetch cadence (seconds)       |
-| `staleMul` | `2`              | stale banner at `staleMul × interval` of feed age  |
-| `margin`   | `60`             | fit-to-view margin (canvas px)                     |
-| `snmp`     | off              | SNMP overlay feed (SNMPCanvas) - see below           |
-| `snmpInterval` | feed cadence / 30 | override the SNMP feed's fetch cadence (seconds) |
-| `theme`    | board default    | apply one theme (`blueprint`, `ink`, `synthwave`, ...); also sets its canvas color |
-| `themes`   | off              | rotate themes for burn-in: a group (`night`/`paper`/`warm`/`cool`/`screen`), a csv, or `all` |
-| `themeInterval` | `900`       | seconds between theme changes (min 5)              |
-| `themeBg`  | on               | `0` keeps the board's own background; rotate chrome only |
-| `themeRecolor` | off          | `1`/`all`, or kinds (`devices,zones`), to also restyle board objects to each theme |
-| `shift`    | off              | pixel-orbit radius in px (nudges the whole diagram to spare the panel) |
-| `shiftInterval` | `300`       | seconds between orbit steps (min 30)               |
-
-Full theme/burn-in behavior is documented in
-[docs/CONFIGURATION.md](docs/CONFIGURATION.md) §2c.
+The common ones: `board` (which diagram), `status` (which feed), `theme`
+(one look), `snmp` (SNMPCanvas overlay feed). The complete reference -
+every parameter, default, and the theme/burn-in machinery - lives in
+[docs/CONFIGURATION.md](docs/CONFIGURATION.md) §2, the single authoritative
+table (this file used to carry a copy; it had already drifted).
 
 Example with overrides:
 

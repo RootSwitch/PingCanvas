@@ -35,9 +35,11 @@ layers, so any overlay that patched the DOM in place must re-bind afterwards
 
 ## URL parameters
 
-`kiosk.html?board=board.xcanvas&status=status.json&interval=30&staleMul=2&margin=60`
+`kiosk.html?board=board.xcanvas&status=status.json`
 
-All optional - the defaults are the values shown. Devices are matched to the
+All optional. The complete parameter reference (defaults, themes, burn-in,
+SNMP overlay) is [docs/CONFIGURATION.md](../docs/CONFIGURATION.md) §2 - the
+single authoritative table. Devices are matched to the
 feed by Device Details **IP-Address** (a **Monitor ID** field overrides when
 two devices share an IP). Zones get an attention ring colored by their worst
 monitored child (shown only for down/degraded).
@@ -109,22 +111,11 @@ You can put text around a token (`Rx: {K7Q2}`) or several on a line
 left literal, so a typo stays visible. A `cpu` metric with a `warn`/`crit`
 status also tints its device's frame amber/red.
 
-**Binding a link to an interface:** in CrossCanvas, add an **annotation** to the
-connection (select the link, add an annotation). The **short `code`** is the
-best match - unique, rename-proof, and offered as a paste-ready `{P9WT}` chip in
-SNMPCanvas. The annotation can also use the interface `id` (`Device:ifName`, the
-raw SNMP name like `EdgeSw-01:GigabitEthernet0/1`) or the friendlier
-`Device:alias` (`EdgeSw-01:Uplink-1`) when the feed carries one. Braces work on
-any of these, so a single `{code}` string pastes onto a link OR a device label
-without editing it. On the
-wall that text is replaced by a live `▼in ▲out` bandwidth pill; the link
-recolors: **red (pulsing)** when the interface is down, **amber** when it is
-near line rate (≥80%) or reporting errors/discards, **gray/dim** when its status
-or counters are unknown, otherwise it keeps its own color. An annotation whose
-text matches no interface keeps showing its text, so a typo stays visible.
-(Only the link's stroke recolors - arrowheads keep the connection's own color.)
-
-The feed schema is documented in [../docs/CONFIGURATION.md](../docs/CONFIGURATION.md);
+**Binding a link to an interface:** add an **annotation** to the connection
+in CrossCanvas; the paste-ready `{code}` chip SNMPCanvas offers is the best
+match. Match rules, brace rules, pill/recolor behavior, and the feed schema
+are all in [../docs/CONFIGURATION.md](../docs/CONFIGURATION.md) §2b (the
+single reference - this file used to carry a copy).
 `samples/snmp-status.json` + `samples/board-snmp.xcanvas` are a ready demo pair.
 
 ## Deploying
