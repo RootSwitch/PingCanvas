@@ -43,6 +43,7 @@
     var snmpInterval = numParam('snmpInterval', null, 1);
     var interval = numParam('interval', null, 1);
     var staleMul = numParam('staleMul', 2, 0.1);
+    var boardWatch = numParam('boardwatch', 30, 0, 3600);   // 0 = never re-check the board
     var margin = numParam('margin', 60, 0, 5000);
     var showGrid = params.get('grid') === '1';        // grid OFF by default in kiosk
     var bgColor = params.get('bg');                   // e.g. ?bg=%23111827 (dark) or ?bg=white
@@ -573,6 +574,49 @@
             });
         });
     }
+    // --- board-change watcher ------------------------------------------------
+    // The board is fetched ONCE, so a swap underneath a running wall leaves the
+    // display frozen on the old one - and the poller re-reads the board every
+    // cycle, so the two disagree immediately. That is worse than stale: a device
+    // whose IP or Monitor ID changed keeps being probed under a NEW feed key
+    // while its old element, bound to the old key, renders gray "unmonitored".
+    // Red turning gray reads as "resolved" when it means "no longer watched".
+    // Nobody is standing at a wall display to press F5, so the kiosk notices for
+    // itself. Cheap: one HEAD per interval against a static file.
+    //
+    // The fingerprint is whatever the server will commit to - ETag, then
+    // Last-Modified, then Content-Length. If it offers none of those the value
+    // is a constant, so the wall never reloads rather than reloading forever on
+    // a server that cannot answer the question.
+    function boardFingerprint(url) {
+        return fetch(url, { method: 'HEAD', cache: 'no-store' }).then(function (r) {
+            if (!r.ok) { return null; }               // absent (404) is a state too
+            return r.headers.get('etag')
+                || r.headers.get('last-modified')
+                || r.headers.get('content-length')
+                || 'present';
+        }).catch(function () { return undefined; });  // transient: undefined = "no opinion"
+    }
+
+    function watchBoard(url) {
+        if (!boardWatch) { return; }
+        var baseline;
+        boardFingerprint(url).then(function (fp) {
+            baseline = fp;
+            setInterval(function () {
+                boardFingerprint(url).then(function (fp2) {
+                    // undefined means the check itself failed (a blip, or the web
+                    // tier restarting). Only a real, different answer reloads -
+                    // a wall that reloads on every network hiccup is worse than
+                    // one that is briefly stale.
+                    if (fp2 === undefined || fp2 === baseline) { return; }
+                    baseline = fp2;
+                    location.reload();
+                });
+            }, boardWatch * 1000);
+        });
+    }
+
     function starterOrDie() {
         return fetchBoardJson('starter-board.xcanvas').catch(function () {
             // Starter missing too (partial deploy): report the board
@@ -634,6 +678,11 @@
                 clock.textContent = missingBoardPath
                     ? 'no board at ' + missingBoardPath + ' yet'
                     : 'starter board - nothing is monitored yet';
+                // Watch the path the operator is going to fill, not the starter
+                // we fell back to: this is the fresh-install case, where the
+                // first upload should light the wall up without anyone walking
+                // over to it.
+                watchBoard(missingBoardPath || boardUrl);
                 return;
             }
 
@@ -645,6 +694,7 @@
                 onStale: applyStale
             });
             feed.start();
+            watchBoard(boardUrl);
 
             // Optional SNMP link overlay: inert unless ?snmp= is present. Runs
             // its own feed against the SNMPCanvas snmp-status.json, independent

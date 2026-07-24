@@ -38,6 +38,7 @@ Board-level conventions:
 | `status=` | **`status.json`** | Which status feed to poll. |
 | `interval=` | feed's `pollIntervalSec` | Per-display fetch cadence override, seconds (min 1). Normally unneeded - the kiosk adopts whatever the feed advertises. |
 | `staleMul=` | **`2`** | Stale threshold = `staleMul × interval`. Data older than that (or 2 straight fetch failures) → STALE banner + grayscale board. |
+| `boardwatch=` | **`30`** | Seconds between checks for a *changed board file*; `0` turns it off. The board is fetched once at load, so without this a wall keeps showing the old diagram after an upload - and worse, a device whose IP or Monitor ID changed goes gray "unmonitored" while the poller happily probes it under the new key, so red turns gray and reads as resolved. On a change the page reloads itself. A fresh wall on the starter board picks up its first uploaded board the same way. Costs one `HEAD` per interval; if the server sends no `ETag`, `Last-Modified` or `Content-Length` the check goes inert rather than reloading blindly. |
 | `margin=` | **`60`** | Fit-to-view padding in px around the board. |
 | `grid=1` | **off** | Show the editor's grid on the wall. |
 | `bg=` | board default | Solid canvas background - `%23112233` (# is URL-encoded) or a CSS color name. Handy for dark walls. On a dark background the board's labels are auto-recolored to stay legible. |
