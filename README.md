@@ -22,6 +22,8 @@ self-hosted deployment shape. And
 front door, uploads boards to this wall straight from the browser - the
 `scp` step is gone.
 
+**Install the whole suite in one command:** the [canvas-suite](https://github.com/RootSwitch/canvas-suite) repo is the family's landing page, with one-shot install scripts for the full six-app stack or a Pi-class PingCanvas + AlertCanvas pair.
+
 ![The PingCanvas kiosk wall: a corporate network with green rings and latency
 readouts on healthy devices, one POS terminal down - red-washed, its branch
 office zone ring raising the alarm - and the live HUD counting 35 up](docs/hero-kiosk.png)
