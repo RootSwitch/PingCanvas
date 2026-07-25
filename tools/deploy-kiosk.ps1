@@ -27,18 +27,18 @@ $kiosk = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..\kiosk'))
 # differ after Set-Location, sending a relative -Dest somewhere surprising.
 $Dest  = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($Dest)
 # Tolerant sibling discovery - same rules as sync-from-crosscanvas.ps1 (ZIP
-# extract names, pre-rename 'netdraw' checkouts, Explorer's doubled folders).
+# extract names, Explorer's doubled folders).
 if (-not $PSBoundParameters.ContainsKey('CrossCanvasPath') -and
     -not (Test-Path -LiteralPath (Join-Path $CrossCanvasPath 'app.js'))) {
     :search foreach ($up in '..\..', '..\..\..') {
         $root = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot $up))
         foreach ($d in @(Get-ChildItem -LiteralPath $root -Directory -ErrorAction SilentlyContinue |
-                         Where-Object { $_.Name -match '^(crosscanvas|netdraw)' })) {
+                         Where-Object { $_.Name -match '^crosscanvas' })) {
             if (Test-Path -LiteralPath (Join-Path $d.FullName 'app.js')) {
                 $CrossCanvasPath = $d.FullName; break search
             }
             $nested = Get-ChildItem -LiteralPath $d.FullName -Directory -ErrorAction SilentlyContinue |
-                Where-Object { $_.Name -match '^(crosscanvas|netdraw)' -and
+                Where-Object { $_.Name -match '^crosscanvas' -and
                                (Test-Path -LiteralPath (Join-Path $_.FullName 'app.js')) } |
                 Select-Object -First 1
             if ($nested) { $CrossCanvasPath = $nested.FullName; break search }

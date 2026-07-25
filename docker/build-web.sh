@@ -9,23 +9,22 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # Tolerant sibling discovery (default path only - an explicit arg still fails
-# loudly): GitHub ZIP downloads extract as 'CrossCanvas-main' / '-master', a
-# checkout from before the rename is a 'netdraw' sibling, and Windows
-# Explorer's Extract All nests everything one level deeper (ZIP.zip ->
+# loudly): GitHub ZIP downloads extract as 'CrossCanvas-main' / '-master', and
+# Windows Explorer's Extract All nests everything one level deeper (ZIP.zip ->
 # ZIP/ZIP/...) - so search the folder above this checkout AND one above that,
-# and accept app.js either directly in a crosscanvas*/netdraw* folder
+# and accept app.js either directly in a crosscanvas* folder
 # (case-insensitive) or in a same-named folder nested inside it.
 DEFAULT_CC="$SCRIPT_DIR/../../crosscanvas"
 if [ ! -f "$DEFAULT_CC/app.js" ]; then
     for root in "$SCRIPT_DIR"/../.. "$SCRIPT_DIR"/../../..; do
         for d in "$root"/*/; do
             name="$(basename "$d" | tr '[:upper:]' '[:lower:]')"
-            case "$name" in crosscanvas*|netdraw*) ;; *) continue ;; esac
+            case "$name" in crosscanvas*) ;; *) continue ;; esac
             if [ -f "$d/app.js" ]; then DEFAULT_CC="$d"; break 2; fi
             for n in "$d"*/; do
                 nname="$(basename "$n" | tr '[:upper:]' '[:lower:]')"
                 case "$nname" in
-                    crosscanvas*|netdraw*) [ -f "$n/app.js" ] && DEFAULT_CC="$n" && break 3 ;;
+                    crosscanvas*) [ -f "$n/app.js" ] && DEFAULT_CC="$n" && break 3 ;;
                 esac
             done
         done

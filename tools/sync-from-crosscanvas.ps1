@@ -33,22 +33,21 @@ if (-not $Dest)        { $Dest = Join-Path $PSScriptRoot '..\kiosk' }
 $CrossCanvasPath = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($CrossCanvasPath)
 # Tolerant sibling discovery (default path only; an explicit -CrossCanvasPath
 # still fails loudly): GitHub ZIP downloads extract as 'CrossCanvas-main' /
-# '-master', a checkout from before the rename is a 'netdraw' sibling, and
-# Explorer's Extract All nests everything one level deeper (ZIP.zip ->
-# ZIP\ZIP\...) - so search the folder above this checkout AND one above that,
-# and accept app.js either directly in a crosscanvas*/netdraw* folder or in a
-# same-named folder nested inside it.
+# '-master', and Explorer's Extract All nests everything one level deeper
+# (ZIP.zip -> ZIP\ZIP\...) - so search the folder above this checkout AND one
+# above that, and accept app.js either directly in a crosscanvas* folder or in
+# a same-named folder nested inside it.
 if (-not $PSBoundParameters.ContainsKey('CrossCanvasPath') -and
     -not (Test-Path -LiteralPath (Join-Path $CrossCanvasPath 'app.js'))) {
     :search foreach ($up in '..\..', '..\..\..') {
         $root = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot $up))
         foreach ($d in @(Get-ChildItem -LiteralPath $root -Directory -ErrorAction SilentlyContinue |
-                         Where-Object { $_.Name -match '^(crosscanvas|netdraw)' })) {
+                         Where-Object { $_.Name -match '^crosscanvas' })) {
             if (Test-Path -LiteralPath (Join-Path $d.FullName 'app.js')) {
                 $CrossCanvasPath = $d.FullName; break search
             }
             $nested = Get-ChildItem -LiteralPath $d.FullName -Directory -ErrorAction SilentlyContinue |
-                Where-Object { $_.Name -match '^(crosscanvas|netdraw)' -and
+                Where-Object { $_.Name -match '^crosscanvas' -and
                                (Test-Path -LiteralPath (Join-Path $_.FullName 'app.js')) } |
                 Select-Object -First 1
             if ($nested) { $CrossCanvasPath = $nested.FullName; break search }
