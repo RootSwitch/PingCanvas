@@ -7,6 +7,14 @@ what changed and when, newest first.
 
 ## Unreleased
 
+- **A degraded link hatches its bandwidth pill.** Link state was carried by
+  colour alone - amber for degraded - so it was invisible to anyone who cannot
+  separate amber from green, the same gap the device rings had. The pill now
+  fills with a diagonal hatch instead. Deliberately a fill swap rather than an
+  extra "Degraded" line of text: identical geometry, so nothing new can cover
+  the label beneath it. On a board dense enough to be worth watching there is
+  no spare room, and an indicator that obscures the diagram is one operators
+  turn off. Down links are unchanged (they pulse and read `--`).
 - **A bare `kiosk.html` now finds the board on a suite install.** The default
   was `board.xcanvas` beside `kiosk.html`, but the suite setup script and the
   LaunchCanvas tile put boards in the shared data root, which nginx serves at

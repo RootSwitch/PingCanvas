@@ -103,6 +103,16 @@ body.kiosk #canvas-container {
 }
 .snmp-pill.stale .snmp-pill-text { fill: #8a8f98; }   /* feed stale: gray the readout */
 
+/* Degraded link: hatch the pill instead of adding a line of text. The colour
+   on the link already says "degraded", but only to someone who can tell amber
+   from green - the same colour-only gap the device rings had. A second text
+   line would read better still, and would also cover whatever sits beneath the
+   annotation on a dense board, which is precisely where a wall earns its keep.
+   The hatch is a fill swap: identical geometry, nothing new to occlude.
+   The pattern itself is built once by snmp-layer.js (SVG shapes cannot take a
+   CSS background), and a stale feed still greys the text over the top. */
+.snmp-pill.degraded .snmp-pill-bg { fill: url(#pc-degraded-hatch); }
+
 /* ?annstyle=native: the annotation's own text carries the live value (its
    font/colors/bg all stay the operator's) - staleness dims it instead of
    swapping fills, so any custom color grays out proportionally. */
