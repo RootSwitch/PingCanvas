@@ -7,6 +7,15 @@ what changed and when, newest first.
 
 ## Unreleased
 
+- **The editor no longer flashes on screen before the kiosk takes over.**
+  `kiosk.css` scopes every chrome-hiding rule to `body.kiosk`, but that class
+  was only added once `kiosk-init.js` ran - after ~800KB of `app.js` had been
+  parsed and executed. Since the editor chrome is static markup, the browser
+  painted the whole editor first and hid it afterwards, which on a Raspberry Pi
+  is slow enough to sit and watch. The build now writes `class="kiosk"` into
+  the markup, so the rules apply from the first byte and the chrome never
+  paints. Verified by loading the built page with every script stripped: the
+  chrome is hidden with no JavaScript at all.
 - **Kiosk fetches twice per produced status file.** The kiosk polled the
   status feed at exactly the rate the poller wrote it, so a fetch landing
   just before a fresh write left the board showing data that aged a further

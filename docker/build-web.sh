@@ -56,7 +56,17 @@ cp "$KIOSK/favicon.svg" "$OUT/kiosk-favicon.svg"
 cp "$CROSSCANVAS/index.html" "$OUT/kiosk.html"
 grep -qF '<link rel="stylesheet" href="style.css">' "$OUT/kiosk.html" || { echo "Anchor (css) not found in CrossCanvas index.html" >&2; exit 1; }
 grep -qF '<script src="app.js"></script>'          "$OUT/kiosk.html" || { echo "Anchor (app) not found in CrossCanvas index.html" >&2; exit 1; }
+grep -qF '<body>'                                  "$OUT/kiosk.html" || { echo "Anchor (body) not found in CrossCanvas index.html" >&2; exit 1; }
 sed -i 's|<link rel="stylesheet" href="style.css">|&\n    <link rel="stylesheet" href="kiosk.css">|' "$OUT/kiosk.html"
+# class="kiosk" belongs in the MARKUP, not only on kiosk-init.js's classList.add.
+# Every chrome-hiding rule in kiosk.css is scoped to body.kiosk, and the editor
+# chrome (#menubar, #toolbar, #sidebar) is static markup in index.html - so with
+# the class arriving only once kiosk-init runs, the browser painted the whole
+# editor, parsed ~800KB of app.js, and only then hid it. On a Raspberry Pi that
+# gap is long enough to sit and watch the editor load before the wall takes over.
+# In the markup the class is true from the first byte and the chrome never paints.
+# kiosk-init still adds it, harmlessly, for any other entry point.
+sed -i 's|<body>|<body class="kiosk">|' "$OUT/kiosk.html"
 # The inline embed flag is hash-allowlisted in CrossCanvas's web.config CSP -
 # changing this exact string requires recomputing that sha256 hash.
 sed -i 's|<script src="app.js"></script>|<script>window.CROSSCANVAS_EMBED = true;</script>\n    <script src="app.js"></script>\n    <script src="status-layer.js"></script>\n    <script src="snmp-layer.js"></script>\n    <script src="kiosk-init.js"></script>|' "$OUT/kiosk.html"

@@ -86,9 +86,20 @@ Copy-Item -LiteralPath (Join-Path $kiosk 'favicon.svg') -Destination (Join-Path 
 $html    = Get-Content -Raw -LiteralPath (Join-Path $CrossCanvasPath 'index.html')
 $anchCss = '<link rel="stylesheet" href="style.css">'
 $anchApp = '<script src="app.js"></script>'
+$anchBody = '<body>'
 if ($html.IndexOf($anchCss) -lt 0) { throw "Anchor not found in CrossCanvas index.html: $anchCss" }
 if ($html.IndexOf($anchApp) -lt 0) { throw "Anchor not found in CrossCanvas index.html: $anchApp" }
+if ($html.IndexOf($anchBody) -lt 0) { throw "Anchor not found in CrossCanvas index.html: $anchBody" }
 $html = $html.Replace($anchCss, $anchCss + "`n    <link rel=`"stylesheet`" href=`"kiosk.css`">")
+# class="kiosk" belongs in the MARKUP, not only on kiosk-init.js's classList.add.
+# Every chrome-hiding rule in kiosk.css is scoped to body.kiosk, and the editor
+# chrome (#menubar, #toolbar, #sidebar) is static markup in index.html - so with
+# the class arriving only once kiosk-init runs, the browser painted the whole
+# editor, parsed ~800KB of app.js, and only then hid it. On a Raspberry Pi that
+# gap is long enough to sit and watch the editor load before the wall takes over.
+# In the markup the class is true from the first byte and the chrome never paints.
+# kiosk-init still adds it, harmlessly, for any other entry point.
+$html = $html.Replace($anchBody, '<body class="kiosk">')
 # The inline embed flag is hash-allowlisted in CrossCanvas's web.config CSP -
 # changing this exact string requires recomputing that sha256 hash.
 $html = $html.Replace($anchApp,
