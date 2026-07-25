@@ -7,6 +7,19 @@ what changed and when, newest first.
 
 ## Unreleased
 
+- **A bare `kiosk.html` now finds the board on a suite install.** The default
+  was `board.xcanvas` beside `kiosk.html`, but the suite setup script and the
+  LaunchCanvas tile put boards in the shared data root, which nginx serves at
+  `/data/` - so typing the URL by hand showed the starter board's "place a
+  board here" guidance while a real board sat one directory away. Accurate from
+  the file's point of view; baffling from the operator's. The default search is
+  now `board.xcanvas` -> `data/board.xcanvas` -> `board.netdraw`, and the
+  status/SNMP feeds default to **whichever directory the board was found in**
+  rather than always the web root - otherwise a suite install rendered a live
+  board with every device permanently gray. An explicit `?board=` is still
+  never second-guessed, only a 404 advances the search (a board that exists but
+  is broken still fails loudly by name), and a root-level board still wins for
+  standalone deployments.
 - **Kiosk reads snmp-status.json schema v4 as well as v3.** v4 sends `device`
   as the device NAME instead of a `{name, host, status}` object and drops `id`
   (which was always `device + ":" + name`), cutting the file roughly in half.

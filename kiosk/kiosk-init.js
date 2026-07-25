@@ -17,13 +17,28 @@
     'use strict';
 
     var params = new URLSearchParams(location.search);
-    var boardUrl = params.get('board') || 'board.xcanvas';
-    // Legacy default: an un-parameterized kiosk whose data folder still holds
-    // a pre-rename board.netdraw falls back to it (an explicit ?board= is
-    // never second-guessed).
-    var legacyBoardUrl = params.get('board') ? null : 'board.netdraw';
-    var statusUrl = params.get('status') || 'status.json';
-    var snmpUrl = params.get('snmp');                 // absent => the SNMP layer stays inert
+    var explicitBoard = params.get('board');
+    var explicitStatus = params.get('status');
+    var explicitSnmp = params.get('snmp');
+    var boardUrl = explicitBoard || 'board.xcanvas';
+    // An un-parameterized kiosk searches the layouts this app actually ships
+    // in, in order:
+    //   board.xcanvas       standalone - the board sits beside kiosk.html
+    //   data/board.xcanvas  suite install - nginx serves the shared data root
+    //                       at /data/, and both the setup script and the
+    //                       LaunchCanvas tile put boards there
+    //   board.netdraw       pre-rename standalone data folders
+    // Without the middle one, typing a bare kiosk.html on a suite install
+    // showed the starter board's "place a board here" guidance while a real
+    // board sat one directory away - accurate from the file's point of view,
+    // and thoroughly confusing from the operator's. An explicit ?board= is
+    // still never second-guessed.
+    var boardFallbacks = explicitBoard ? [] : ['data/board.xcanvas', 'board.netdraw'];
+    var statusUrl = explicitStatus || 'status.json';
+    var snmpUrl = explicitSnmp;                       // may be derived once the board is found
+
+    // 'data/board.xcanvas' -> 'data/'   |   'board.xcanvas' -> ''
+    function dirOf(u) { var i = String(u).lastIndexOf('/'); return i < 0 ? '' : String(u).slice(0, i + 1); }
     // Numeric params are parsed defensively: a wall URL is typed by hand, often
     // once, and then runs for months. A junk value must degrade to the default,
     // never to NaN - `?margin=abc` used to reach fitToView(NaN) and render the
@@ -642,23 +657,32 @@
             throw new Error('not found - place a board file here (the bundled starter board is also missing from this deployment)');
         });
     }
+    // Walk the remaining default locations. Only a 404 advances to the next:
+    // anything else (5xx, truncated JSON) is LOUD and names the file it hit,
+    // because a board that EXISTS but is broken must never masquerade as a
+    // fresh install.
+    function tryFallbacks(list) {
+        if (!list.length) { starterActive = true; return starterOrDie(); }
+        var next = list[0];
+        return fetchBoardJson(next)
+            .then(function (data) { boardUrl = next; return data; })
+            .catch(function (err) {
+                if (!err.missing) { boardUrl = next; throw err; }
+                return tryFallbacks(list.slice(1));
+            });
+    }
+
     fetchBoardJson(boardUrl)
         .catch(function (err) {
             if (!err.missing) { throw err; }            // BROKEN: always loud
-            if (!legacyBoardUrl) {
+            if (explicitBoard) {
                 // Explicit ?board= that is absent: starter guidance, but
                 // remember the path so the ticker can name it.
                 starterActive = true;
                 missingBoardPath = boardUrl;
                 return starterOrDie();
             }
-            // Default-board fallback only: data folders from before the rename
-            // hold board.netdraw, and an unconfigured wall should keep working.
-            return fetchBoardJson(legacyBoardUrl).catch(function (err2) {
-                if (!err2.missing) { boardUrl = legacyBoardUrl; throw err2; }
-                starterActive = true;
-                return starterOrDie();
-            });
+            return tryFallbacks(boardFallbacks);
         })
         .then(function (data) {
             window.CrossCanvas.load(data);
@@ -704,6 +728,16 @@
                 return;
             }
 
+            // Where the board was FOUND tells us which layout this deployment
+            // uses, so the sibling feeds default to that same directory rather
+            // than to the web root. Without this, a suite install found its
+            // board under /data/ and then read a status file that was never
+            // there - a live-looking wall with every device permanently gray.
+            // Explicit ?status= / ?snmp= always win.
+            var feedDir = dirOf(boardUrl);
+            if (!explicitStatus) { statusUrl = feedDir + 'status.json'; }
+            if (!explicitSnmp) { snmpUrl = feedDir + 'snmp-status.json'; }
+
             var feed = new window.StatusFeed({
                 url: statusUrl,
                 interval: interval,
@@ -714,9 +748,12 @@
             feed.start();
             watchBoard(boardUrl);
 
-            // Optional SNMP link overlay: inert unless ?snmp= is present. Runs
-            // its own feed against the SNMPCanvas snmp-status.json, independent
-            // of the device feed above. Needs #status-overlay (built just now).
+            // SNMP link overlay. The path is now derived from the board's
+            // directory rather than requiring ?snmp=, which is safe because
+            // SnmpLayer.init returns immediately when the board carries no
+            // {CODE} bindings - a board that never mentions SNMP opens no feed
+            // and costs nothing. A board that DOES mention it clearly wants the
+            // data, and previously got nothing unless the URL was typed in full.
             if (snmpUrl && window.SnmpLayer) {
                 window.SnmpLayer.init({ snmpUrl: snmpUrl, interval: snmpInterval, staleMul: staleMul,
                                         annStyle: params.get('annstyle') });
