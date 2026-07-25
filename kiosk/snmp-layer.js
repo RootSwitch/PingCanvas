@@ -70,10 +70,20 @@
         var ifaces = (doc && doc.interfaces) || [];
         for (i = 0; i < ifaces.length; i++) {
             var it = ifaces[i];
+            // Schema v4 made `device` the device NAME and dropped `id` (which
+            // was always device + ':' + name, restating two neighbouring
+            // fields). v3 sent a {name,host,status} object plus an explicit id.
+            // Accept BOTH: the suite's apps update independently, so a kiosk
+            // can meet either version of SNMPCanvas and neither upgrade order
+            // should blank a wall.
+            var devName = (typeof it.device === 'string') ? it.device
+                        : (it.device && it.device.name) || '';
+            var ifId = (it.id != null && it.id !== '') ? it.id
+                     : (devName && it.name ? devName + ':' + it.name : '');
             var disp = (it.display != null && it.display !== '') ? it.display
                      : ('▼' + fmtBps(it.inBps) + '  ▲' + fmtBps(it.outBps));
             var e = { display: disp, iface: it };
-            if (it.id != null && it.id !== '') { idx[it.id] = e; }   // '' would catch a "{ }" token
+            if (ifId) { idx[ifId] = e; }                            // '' would catch a "{ }" token
             if (it.code != null && it.code !== '') { idx[it.code] = e; }
             // Also match "Device:alias" (the friendly interface name, e.g.
             // "EdgeSw-01:Uplink-1"). The exporter's `id` is "Device:ifName"
@@ -81,8 +91,8 @@
             // annotation written against the readable alias never binds - the
             // exact drift the samples used to hide. `id` still wins on a clash
             // (registered first, not overwritten).
-            if (it.alias && it.device && it.device.name) {
-                var aliasKey = it.device.name + ':' + it.alias;
+            if (it.alias && devName) {
+                var aliasKey = devName + ':' + it.alias;
                 if (idx[aliasKey] === undefined) { idx[aliasKey] = e; }
             }
         }

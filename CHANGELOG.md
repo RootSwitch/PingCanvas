@@ -7,6 +7,16 @@ what changed and when, newest first.
 
 ## Unreleased
 
+- **Kiosk reads snmp-status.json schema v4 as well as v3.** v4 sends `device`
+  as the device NAME instead of a `{name, host, status}` object and drops `id`
+  (which was always `device + ":" + name`), cutting the file roughly in half.
+  The kiosk now derives the `Device:ifName` binding key when `id` is absent and
+  reads the device name from either shape, so board annotations keep binding
+  either way. Both schemas are accepted deliberately: suite apps are updated
+  independently, and an operator who updates SNMPCanvas on Tuesday and
+  PingCanvas on Friday should not get a blank wall in between. Covered by
+  `kiosk/snmp-layer.schema.test.js`, which extracts the real `buildIndex` from
+  the shipped file rather than re-implementing it.
 - **Status no longer depends on telling colours apart.** Each state's ring now
   carries a dash pattern saying what its colour says: `up` solid, `degraded`
   dashed, `unknown`/`unmonitored` dotted, `down` unchanged (it already had a
