@@ -7,6 +7,15 @@ what changed and when, newest first.
 
 ## Unreleased
 
+- **`tools/test-snmp-schema.js`**: proves a kiosk indexes an SNMPCanvas v3 feed
+  and a v4 feed identically. Version skew between siblings is normal - separate
+  repos mean somebody updates SNMPCanvas on Tuesday and the kiosk Pi in March -
+  and v4 flattened `device` to a string and moved `sampledAt` to epoch seconds.
+  The failure it guards against is quiet: a board whose annotations stop binding
+  still renders perfectly, just with no numbers on it. It lifts the real
+  `buildIndex` out of `kiosk/snmp-layer.js` rather than copying it, so an edit
+  to the shipped function is an edit to what the test covers.
+
 - **A degraded link hatches its bandwidth pill.** Link state was carried by
   colour alone - amber for degraded - so it was invisible to anyone who cannot
   separate amber from green, the same gap the device rings had. The pill now
