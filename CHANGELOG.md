@@ -7,6 +7,18 @@ what changed and when, newest first.
 
 ## Unreleased
 
+- **Status no longer depends on telling colours apart.** Each state's ring now
+  carries a dash pattern saying what its colour says: `up` solid, `degraded`
+  dashed, `unknown`/`unmonitored` dotted, `down` unchanged (it already had a
+  translucent body wash and a pulse, so it never needed colour). This closes a
+  real gap rather than adding decoration - `up` (#2e9b57) and `degraded`
+  (#d9a406) are the classic red-green confusion pair and collapse to nearly the
+  same olive for the ~8% of men with deuteranopia, so a **degrading device read
+  as healthy**, the worst direction for that to fail. The HUD legend swatches
+  are now outlines carrying the same patterns, since a key that varies only by
+  colour is unusable by the people the patterns are for. Zone rings take the
+  pattern but not the body wash. Dashes are static, so unlike the pulse they
+  also survive monochrome displays and printouts.
 - **The editor no longer flashes on screen before the kiosk takes over.**
   `kiosk.css` scopes every chrome-hiding rule to `body.kiosk`, but that class
   was only added once `kiosk-init.js` ran - after ~800KB of `app.js` had been

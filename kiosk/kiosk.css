@@ -40,11 +40,32 @@ body.kiosk #canvas-container {
 /* Down devices: translucent red wash over the whole body (the ring rect sits on
    top of the device, so its fill tints it) - unmistakable on any palette. The
    fill must live HERE: a CSS `fill` beats the SVG fill attribute, so setting it
-   from JS via setAttribute would be silently overridden by the rule above. */
-.status-ring.down {
+   from JS via setAttribute would be silently overridden by the rule above.
+   Scoped away from .zone-ring: washing an entire zone red would drown the
+   devices inside it, and zones already convey state by appearing at all. */
+.status-ring.st-down:not(.zone-ring) {
     fill: rgba(214, 69, 69, 0.45);
     animation: statusPulse 1.4s ease-in-out infinite;
 }
+
+/* Colour-independent state encoding. Every state's DASH PATTERN carries what
+   its colour carries, so the wall still reads with no colour perception at all.
+   Not decoration: up (#2e9b57) and degraded (#d9a406) are the classic red-green
+   confusion pair and collapse to nearly the same olive for the ~8% of men with
+   deuteranopia - so a DEGRADING device looked healthy, the worst direction for
+   that to fail.
+     up          solid       (unchanged - the common case stays quietest)
+     degraded    dashed
+     unknown     dotted      (also separates "not monitored" from "fine")
+     down        solid + body wash + pulse (already readable without colour)
+   Dashes rather than glyphs, deliberately: a pattern is a property of a ring
+   that already exists, so it adds no elements to occlude a dense board, and a
+   texture difference at 4px stroke reads across a room where a 12px glyph does
+   not. It also survives monochrome - which is what an e-ink panel and a
+   black-and-white printout both are. */
+.status-ring.st-degraded    { stroke-dasharray: 11 7; }
+.status-ring.st-unknown,
+.status-ring.st-unmonitored { stroke-dasharray: 2 7; stroke-linecap: round; }
 
 @keyframes statusPulse {
     0%, 100% { opacity: 0.95; }
@@ -114,7 +135,18 @@ body.kiosk #canvas-container {
     font: 400 15px/1.2 system-ui, sans-serif;
 }
 #kiosk-hud .legend-item { display: inline-flex; align-items: center; gap: 6px; }
-#kiosk-hud .legend-swatch { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+/* Outlined, not filled, so it shows the same dash pattern the ring does - a
+   legend that varies only by colour is unusable by exactly the people the
+   patterns exist for. Slightly larger than the old filled block so 3px dashes
+   are actually resolvable at this size. */
+#kiosk-hud .legend-swatch {
+    width: 14px; height: 14px; border-radius: 3px; display: inline-block;
+    border: 3px solid; box-sizing: border-box;
+}
+#kiosk-hud .legend-swatch.st-degraded    { border-style: dashed; }
+#kiosk-hud .legend-swatch.st-unknown,
+#kiosk-hud .legend-swatch.st-unmonitored { border-style: dotted; }
+#kiosk-hud .legend-swatch.st-down        { background: rgba(214, 69, 69, 0.45); }
 #kiosk-hud .clock { opacity: 0.75; }
 #kiosk-hud .clock.stale { color: #ff7a7a; opacity: 1; }
 

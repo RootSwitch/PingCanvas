@@ -337,7 +337,11 @@
     ['up', 'degraded', 'down', 'unmonitored'].forEach(function (s) {
         var item = document.createElement('span');
         item.className = 'legend-item';
-        item.innerHTML = '<span class="legend-swatch" style="background:' + COLORS[s] +
+        // The swatch is an OUTLINE, not a filled block, so it mirrors what is
+        // actually on the board - a ring - and can carry the same dash pattern.
+        // A legend that only varies by colour cannot be used by the people the
+        // dash patterns are there for.
+        item.innerHTML = '<span class="legend-swatch st-' + s + '" style="border-color:' + COLORS[s] +
             '"></span><span id="count-' + s + '">0</span>&nbsp;' + s;
         hud.appendChild(item);
     });
@@ -422,7 +426,10 @@
             });
             if (!keys.length) return;
             var r = document.createElementNS(SVGNS, 'rect');
-            r.setAttribute('class', 'status-ring');
+            // zone-ring marks it as a ZONE outline, not a device: the red body
+            // wash and pulse on st-down are scoped away from these, because
+            // washing an entire zone red would drown the devices inside it.
+            r.setAttribute('class', 'status-ring zone-ring');
             r.setAttribute('x', z.x - 6); r.setAttribute('y', z.y - 6);
             r.setAttribute('width', z.w + 12); r.setAttribute('height', z.h + 12);
             r.setAttribute('rx', 12);
@@ -489,11 +496,16 @@
             if (ring.key) { stateByKey[ring.key] = s; }
             if (s === 'down') { downNames.push(ring.name); }
             ring.el.setAttribute('stroke', COLORS[s]);
-            // .down also applies the translucent red body wash - that lives in
-            // kiosk.css (.status-ring.down), NOT as a fill attribute here: the
+            // The st-<state> class carries a DASH PATTERN that says the same
+            // thing the colour does. up and degraded used to differ by hue
+            // alone (#2e9b57 vs #d9a406) - the classic red-green confusion
+            // pair - so to a deuteranope a degrading device read as healthy,
+            // the worst direction for that to fail. Patterns live in
+            // kiosk.css; st-down additionally applies the translucent red body
+            // wash, which must be CSS and not a fill attribute here (the
             // stylesheet's `fill: none` on .status-ring would override any
-            // attribute value (CSS beats SVG presentation attributes).
-            ring.el.classList.toggle('down', s === 'down');
+            // attribute value - CSS beats SVG presentation attributes).
+            ring.el.setAttribute('class', 'status-ring st-' + s);
             if (ring.lat) {
                 var e = window.StatusFeed.entryFor(devicesByIp, ring.key);
                 ring.lat.textContent =
@@ -510,7 +522,13 @@
             });
             var alert = worst === 'down' || worst === 'degraded';
             zr.el.style.display = alert ? '' : 'none';
-            if (alert) { zr.el.setAttribute('stroke', COLORS[worst]); }
+            if (alert) {
+                zr.el.setAttribute('stroke', COLORS[worst]);
+                // Same dash encoding as devices, so a zone flagged for a
+                // DEGRADED member is tellable from one flagged for a DOWN
+                // member without reading the colour.
+                zr.el.setAttribute('class', 'status-ring zone-ring st-' + worst);
+            }
         });
 
         document.getElementById('count-up').textContent = counts.up;
