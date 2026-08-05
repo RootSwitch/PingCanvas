@@ -51,6 +51,12 @@ Two independent knobs, best used together:
 `?themes=night&themeInterval=600` rotates the theme every 10 minutes, repainting
 the canvas background and chrome so a permanently-on panel isn't holding one
 image for months. `?theme=blueprint` applies a single theme instead.
+`?themeOrder=shuffle` rotates in random order rather than roster order - the
+roster is grouped Paper-first, so a plain `?themes=all` wall spends its first
+hours in muted themes before anything colorful appears; shuffle mixes the
+groups from the first interval, and reshuffles each full cycle without ever
+repeating a theme back-to-back. `?themeName=1` adds the current theme's name
+to the HUD, swatched in the theme's own accent color.
 
 `?themeRecolor=1` goes further and restyles the **board itself** each time the
 theme changes - device tints, zone fills, connection ink, label colors - using

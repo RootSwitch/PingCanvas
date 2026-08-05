@@ -66,6 +66,15 @@
     var themeParam = params.get('theme');             // one theme, e.g. ?theme=blueprint
     var themesParam = params.get('themes');           // rotate: csv, a group name, or 'all'
     var themeIntervalSec = numParam('themeInterval', 900, 5);
+    // ?themeOrder=shuffle - rotate in random order instead of list order. The
+    // themes() roster is grouped Paper-first, so a list-order ?themes=all wall
+    // spends its first hours in muted parchments before any Night theme
+    // appears; shuffle mixes the groups from the first interval.
+    var themeShuffle = (params.get('themeOrder') || '').toLowerCase() === 'shuffle';
+    // ?themeName=1 - show the current theme's name in the HUD, swatched in the
+    // theme's own accent. Off by default: a wall for visitors should not
+    // explain itself, but the wall you tune themes ON wants the name visible.
+    var showThemeName = params.get('themeName') === '1';
     var themeBg = params.get('themeBg') !== '0';      // theme picks the canvas color (ON)
     // ?themeRecolor=1|all           restyle every kind
     // ?themeRecolor=devices,zones   restyle only these (the rest keep their colors)
@@ -264,6 +273,22 @@
         // An explicit ?bg= is the operator's own choice and always wins.
         if (themeBg && !bgColor && t.canvasDark) { setCanvasBg(t.canvasDark); }
         applyLabelContrast();   // also covers ?themeBg=0, where setCanvasBg never runs
+        // ?themeName=1 chip. The kiosk page IS the CrossCanvas document, so
+        // the applied theme's chrome vars are live on :root - the swatch is
+        // painted with var(--se-accent) in CSS and follows every repaint with
+        // no bookkeeping here; only the text needs setting.
+        var chip = document.getElementById('kiosk-theme-name');
+        if (chip) { chip.textContent = t.label; }
+    }
+
+    // Fisher-Yates, in place. Rotation order is presentation, not identity,
+    // so shuffling the resolved list never affects which themes show - only
+    // when.
+    function shuffleThemes(list) {
+        for (var i = list.length - 1; i > 0; i--) {
+            var j = Math.floor(Math.random() * (i + 1));
+            var tmp = list[i]; list[i] = list[j]; list[j] = tmp;
+        }
     }
 
     function startThemes() {
@@ -271,10 +296,25 @@
         themeRotation = resolveThemes(themesParam);
         if (!themeRotation.length) { themeRotation = resolveThemes(themeParam); }
         if (!themeRotation.length) { return; }
+        if (themeShuffle) { shuffleThemes(themeRotation); }
         paintTheme(themeRotation[0]);
         if (themeRotation.length < 2 || !(themeIntervalSec > 0)) { return; }
         setInterval(function () {
             themeIdx = (themeIdx + 1) % themeRotation.length;
+            // Reshuffle each time the ring wraps so the order stays fresh on a
+            // wall that runs for weeks - guarding against the new first theme
+            // repeating the one currently showing (a swap with a random other
+            // slot, which preserves the shuffle's uniformity well enough for
+            // wallpaper).
+            if (themeShuffle && themeIdx === 0 && themeRotation.length > 2) {
+                var last = themeRotation[themeRotation.length - 1];
+                shuffleThemes(themeRotation);
+                if (themeRotation[0].id === last.id) {
+                    var k = 1 + Math.floor(Math.random() * (themeRotation.length - 1));
+                    var tmp = themeRotation[0];
+                    themeRotation[0] = themeRotation[k]; themeRotation[k] = tmp;
+                }
+            }
             paintTheme(themeRotation[themeIdx]);
         }, Math.max(5, themeIntervalSec) * 1000);
     }
@@ -364,6 +404,16 @@
     clock.className = 'clock';
     clock.textContent = 'waiting for status…';
     hud.appendChild(clock);
+    if (showThemeName) {
+        // Same anatomy as a legend item so it reads as part of the HUD, but
+        // the swatch is FILLED with the live theme accent (a status swatch is
+        // an outline - the difference keeps it from reading as a fifth state).
+        var themeItem = document.createElement('span');
+        themeItem.className = 'legend-item theme-name-item';
+        themeItem.innerHTML = '<span class="theme-name-swatch"></span>' +
+            '<span id="kiosk-theme-name"></span>';
+        hud.appendChild(themeItem);
+    }
     document.body.appendChild(hud);
 
     // Down-device panel: bottom-right, same style as the HUD, grows upward,
