@@ -148,7 +148,7 @@ function Read-BoardDevices {
 # works - see DEPLOY.md). Then the URL serves no more than the wall displays.
 # Zero kiosk changes: the binding contract is unchanged, only who fills it in.
 function Write-WallBoard {
-    param([string]$SourcePath, [string]$WallPath, [hashtable]$MonitoredIds)
+    param([string]$SourcePath, [string]$WallPath, [hashtable]$MonitoredIds, [string]$SourceSha)
     $raw = Get-Content -Raw -LiteralPath $SourcePath
     $doc = $raw | ConvertFrom-Json -ErrorAction Stop
     foreach ($d in $doc.devices) {
@@ -158,15 +158,36 @@ function Write-WallBoard {
             $d.PSObject.Properties.Remove('fields')
         }
     }
-    # Informational marker so a human (or tooling) can tell a wall copy from a
-    # source board at a glance. The kiosk ignores unknown keys.
+    # Marker so a human (or tooling) can tell a wall copy from a source board
+    # at a glance - and so CrossCanvas can warn on open. The kiosk ignores
+    # unknown keys.
     if (-not $doc.PSObject.Properties['wallSanitized']) {
         $doc | Add-Member -NotePropertyName 'wallSanitized' -NotePropertyValue $true
     }
+    # The rewrite gate's state, IN THE FILE. An in-memory cache does not
+    # survive -Once invocations (the docker entrypoint launches a fresh
+    # process every cycle), and a wall board rewritten each cycle changes
+    # mtime, which changes nginx's ETag, which the kiosk's board-watch reads
+    # as a board change - a full location.reload() every cycle. The flash a
+    # user reported at theme time was this, riding the same 30s cadence.
+    $doc | Add-Member -NotePropertyName 'wallSourceSha' -NotePropertyValue $SourceSha -Force
     # Depth matters: ConvertTo-Json's default (2) silently STRINGIFIES deeper
     # levels - a board's label spans sit four deep. 100 is the cmdlet maximum,
     # not a guess.
     Write-Atomic -Path $WallPath -Content ($doc | ConvertTo-Json -Depth 100)
+}
+
+# Stateless gate: the existing wall file carries the SHA of the source it was
+# built from. We wrote it, so a targeted regex beats parsing megabytes of
+# JSON every cycle.
+function Get-WallSourceSha {
+    param([string]$WallPath)
+    if (-not (Test-Path -LiteralPath $WallPath)) { return $null }
+    try {
+        $head = Get-Content -Raw -LiteralPath $WallPath
+        if ($head -match '"wallSourceSha":\s*"([0-9A-Fa-f-]+)"') { return $Matches[1] }
+    } catch { }
+    return $null
 }
 
 # --- one concurrent batch (fired together, one bounded wait) ----------------
@@ -357,19 +378,18 @@ function Invoke-Poll {
             Write-StatusFile -Path $bd.wall.statusPath -Keys @($bd.wall.keyToIp.Keys) `
                              -KeyToIp $bd.wall.keyToIp -Results $results -Names $bd.wall.names `
                              -NowS $nowS -IntervalSec $Cfg.pollIntervalSec
-            # The stripped board only changes when the source does - gate on a
-            # cheap content hash rather than rewriting a big JSON every cycle.
+            # The stripped board only changes when the source does. The gate
+            # must be STATELESS across invocations (docker runs the poller
+            # -Once per cycle in a fresh process), so the comparison hash
+            # lives inside the wall file itself, not in a variable.
             $srcRaw  = Get-Content -Raw -LiteralPath $bd.wall.boardSrc
             $sha     = [System.BitConverter]::ToString(
                            [System.Security.Cryptography.SHA256]::Create().ComputeHash(
                                [System.Text.Encoding]::UTF8.GetBytes($srcRaw)))
-            if (-not $script:WallHashes) { $script:WallHashes = @{} }
-            if ($script:WallHashes[$bd.wall.boardPath] -ne $sha -or
-                -not (Test-Path -LiteralPath $bd.wall.boardPath)) {
+            if ((Get-WallSourceSha -WallPath $bd.wall.boardPath) -ne $sha) {
                 try {
                     Write-WallBoard -SourcePath $bd.wall.boardSrc -WallPath $bd.wall.boardPath `
-                                    -MonitoredIds $bd.wall.keyToIp
-                    $script:WallHashes[$bd.wall.boardPath] = $sha
+                                    -MonitoredIds $bd.wall.keyToIp -SourceSha $sha
                 } catch {
                     # A failed strip must NEVER fall back to serving the source
                     # - fail loud, leave the previous wall copy standing.

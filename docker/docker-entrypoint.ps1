@@ -29,8 +29,13 @@ Write-Host "PingCanvas poller: dataDir=$dataDir interval=${interval}s"
 while ($true) {
     $sw = [System.Diagnostics.Stopwatch]::StartNew()
     try {
+        # .netdraw = legacy, read forever. *.wall.* files are the POLLER'S OWN
+        # OUTPUT - without the exclusion it discovers its generated wall copy
+        # as a new board named 'board.wall', polls its zero IPs, and litters
+        # the served root with an empty status-board.wall.json every cycle.
         $boards = @(Get-ChildItem -LiteralPath $dataDir -File -ErrorAction Stop |
-                Where-Object { $_.Extension -in '.xcanvas', '.netdraw' })   # .netdraw = legacy, read forever
+                Where-Object { $_.Extension -in '.xcanvas', '.netdraw' -and
+                               $_.Name -notmatch '\.wall\.(xcanvas|netdraw)$' })
         # Wall-split layout (DEPLOY.md): boards under /data/.private are
         # SOURCES the web tier never serves (nginx 404s dot-paths). Location
         # IS the opt-in - a board placed there gets `wall = true`
@@ -42,7 +47,8 @@ while ($true) {
         $privBoards = @()
         if (Test-Path -LiteralPath $privDir) {
             $privBoards = @(Get-ChildItem -LiteralPath $privDir -File -ErrorAction Stop |
-                    Where-Object { $_.Extension -in '.xcanvas', '.netdraw' })
+                    Where-Object { $_.Extension -in '.xcanvas', '.netdraw' -and
+                                   $_.Name -notmatch '\.wall\.(xcanvas|netdraw)$' })
         }
         if (-not $boards.Count -and -not $privBoards.Count) {
             Write-Warning "No .xcanvas (or .netdraw) boards in $dataDir (or its .private) yet - drop one in; waiting."
