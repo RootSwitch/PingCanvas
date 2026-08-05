@@ -31,15 +31,39 @@ while ($true) {
     try {
         $boards = @(Get-ChildItem -LiteralPath $dataDir -File -ErrorAction Stop |
                 Where-Object { $_.Extension -in '.xcanvas', '.netdraw' })   # .netdraw = legacy, read forever
-        if (-not $boards.Count) {
-            Write-Warning "No .xcanvas (or .netdraw) boards in $dataDir yet - drop one in; waiting."
+        # Wall-split layout (DEPLOY.md): boards under /data/.private are
+        # SOURCES the web tier never serves (nginx 404s dot-paths). Location
+        # IS the opt-in - a board placed there gets `wall = true`
+        # automatically, its full status written beside it in .private, and
+        # only the stripped .wall pair lands in the served root. No env var
+        # to remember: putting a board somewhere unservable already states
+        # the intent completely.
+        $privDir = Join-Path $dataDir '.private'
+        $privBoards = @()
+        if (Test-Path -LiteralPath $privDir) {
+            $privBoards = @(Get-ChildItem -LiteralPath $privDir -File -ErrorAction Stop |
+                    Where-Object { $_.Extension -in '.xcanvas', '.netdraw' })
+        }
+        if (-not $boards.Count -and -not $privBoards.Count) {
+            Write-Warning "No .xcanvas (or .netdraw) boards in $dataDir (or its .private) yet - drop one in; waiting."
         } else {
-            $entries = foreach ($b in $boards) {
-                $base   = [System.IO.Path]::GetFileNameWithoutExtension($b.Name)
-                # board.xcanvas (or legacy board.netdraw) -> status.json (kiosk
-                # default); others -> status-<base>.json
-                $status = if ($base -ieq 'board') { 'status.json' } else { "status-$base.json" }
-                [ordered]@{ file = $b.FullName; status = $status }
+            # board.xcanvas (or legacy board.netdraw) -> status.json (kiosk
+            # default); others -> status-<base>.json
+            $statusNameFor = { param($base)
+                if ($base -ieq 'board') { 'status.json' } else { "status-$base.json" }
+            }
+            $entries = @()
+            $entries += foreach ($b in $boards) {
+                $base = [System.IO.Path]::GetFileNameWithoutExtension($b.Name)
+                [ordered]@{ file = $b.FullName; status = (& $statusNameFor $base) }
+            }
+            $entries += foreach ($b in $privBoards) {
+                $base = [System.IO.Path]::GetFileNameWithoutExtension($b.Name)
+                # Full status stays unserved beside its board; the poller
+                # derives the served .wall pair's names from these basenames.
+                [ordered]@{ file = $b.FullName
+                            status = ('.private/' + (& $statusNameFor $base))
+                            wall = $true }
             }
             $cfg = [ordered]@{
                 pollIntervalSec = $interval
@@ -49,7 +73,17 @@ while ($true) {
                 outputDir       = $dataDir
                 boards          = @($entries)
             }
-            if ($combined) { $cfg.combinedStatus = 'status-all.json' }
+            # The combined file names every device across every board, so one
+            # private board makes the WHOLE combined file private - hostnames
+            # from .private must not resurface at the served root through the
+            # side door. AlertCanvas reads it by file mount, so it follows the
+            # move via its ping-feed path setting.
+            if ($combined) {
+                $cfg.combinedStatus = if ($privBoards.Count) { '.private/status-all.json' } else { 'status-all.json' }
+                if ($privBoards.Count) {
+                    Write-Host "Private boards present: combined status -> .private/status-all.json (point AlertCanvas's ping feed there)"
+                }
+            }
             $utf8 = New-Object System.Text.UTF8Encoding($false)
             [System.IO.File]::WriteAllText($cfgPath, ($cfg | ConvertTo-Json -Depth 6), $utf8)
             & $poller -Config $cfgPath -Once

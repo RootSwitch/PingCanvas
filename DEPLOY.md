@@ -267,6 +267,14 @@ means they already own the box - so the items below are hygiene, not patches.
   ```
 
   Kiosk URL: `kiosk.html?board=data/board.wall.xcanvas&status=data/status.wall.json`.
+  **Docker / compose: location IS the opt-in.** The poller container
+  auto-discovers boards, so there is no config file to edit - any board placed
+  under `/data/.private/` is walled automatically: full status written beside
+  it (unserved), stripped `.wall` pair written to the served root. One private
+  board also moves `status-all.json` into `.private/` (it names every device,
+  so one private board makes the whole combined file private); AlertCanvas
+  reads it by file mount, so update its ping-feed path setting to
+  `/status/.private/status-all.json`.
   The dot-path trick rides the existing nginx rule (hidden names 404 under
   `/data/`); verify with `curl -f https://wall/data/.private/board.xcanvas`
   expecting 404. A failed strip never falls back to serving the source - the
