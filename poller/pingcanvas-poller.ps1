@@ -115,12 +115,58 @@ function Read-BoardDevices {
         # two shapes share one IP yet carry distinct entries/names - e.g. the
         # same device drawn on both a logical and a physical diagram.
         $monId = if ($f -and $f.'Monitor ID' -and "$($f.'Monitor ID')".Trim()) { "$($f.'Monitor ID')".Trim() } else { $null }
+        # The drawn label (first line) rides along for the WALL status file,
+        # which names devices by what the board displays rather than by
+        # hostname - the point of the wall split is that nothing
+        # hostname-shaped leaves the box.
+        $lbl = if ($d.label) { ("$($d.label)" -split "`n")[0].Trim() } else { '' }
         [void]$out.Add([pscustomobject]@{
             IP = "$ip".Trim(); Key = $(if ($monId) { $monId } else { "$ip".Trim() })
             Name = "$name".Trim(); Check = $check; Port = $port
+            Id = "$($d.id)"; Label = $(if ($lbl) { $lbl } else { 'device' })
         })
     }
     return $out
+}
+
+# --- wall copies: a servable board with the secrets removed -----------------
+# The kiosk needs geometry, labels and a binding key; only the POLLER needs
+# addresses. An opt-in `"wall": true` on a board writes a second pair into the
+# web root:
+#
+#   * <board>.wall.xcanvas - the same diagram with every device's hidden
+#     fields REMOVED (hostnames, addresses, serials, OS versions, customs).
+#     Monitored devices keep exactly one field, Monitor ID = the device's own
+#     opaque id - the binding indirection the kiosk already honors
+#     (fields['Monitor ID'] || fields['IP-Address']). Unmonitored devices
+#     keep no fields at all.
+#   * <status>.wall.json - the same states keyed by those ids, named by each
+#     device's drawn LABEL rather than its hostname.
+#
+# Point the kiosk at the wall pair and keep the source board out of the served
+# tree (nginx's /data rules already 404 every dot-path, so data/.private/
+# works - see DEPLOY.md). Then the URL serves no more than the wall displays.
+# Zero kiosk changes: the binding contract is unchanged, only who fills it in.
+function Write-WallBoard {
+    param([string]$SourcePath, [string]$WallPath, [hashtable]$MonitoredIds)
+    $raw = Get-Content -Raw -LiteralPath $SourcePath
+    $doc = $raw | ConvertFrom-Json -ErrorAction Stop
+    foreach ($d in $doc.devices) {
+        if ($MonitoredIds.ContainsKey("$($d.id)")) {
+            $d.fields = [pscustomobject]@{ 'Monitor ID' = "$($d.id)" }
+        } elseif ($d.PSObject.Properties['fields']) {
+            $d.PSObject.Properties.Remove('fields')
+        }
+    }
+    # Informational marker so a human (or tooling) can tell a wall copy from a
+    # source board at a glance. The kiosk ignores unknown keys.
+    if (-not $doc.PSObject.Properties['wallSanitized']) {
+        $doc | Add-Member -NotePropertyName 'wallSanitized' -NotePropertyValue $true
+    }
+    # Depth matters: ConvertTo-Json's default (2) silently STRINGIFIES deeper
+    # levels - a board's label spans sit four deep. 100 is the cmdlet maximum,
+    # not a guess.
+    Write-Atomic -Path $WallPath -Content ($doc | ConvertTo-Json -Depth 100)
 }
 
 # --- one concurrent batch (fired together, one bounded wait) ----------------
@@ -273,7 +319,27 @@ function Invoke-Poll {
             if (-not $keyToIp.ContainsKey($d.Key)) { $keyToIp[$d.Key] = $d.IP; $names[$d.Key] = $d.Name }
             if (-not $keys.Contains($d.Key)) { $keys.Add($d.Key) }
         }
-        $boards += [pscustomobject]@{ statusPath = (Join-Path $outDir $b.status); keys = $keys.ToArray() }
+        # Wall pair bookkeeping: keys are the devices' own opaque ids, names
+        # are the drawn labels. Kept per-board (not folded into the global
+        # maps) so the private files never gain id-keyed entries and the wall
+        # files never gain hostname-named ones.
+        $wall = $null
+        if ($b.PSObject.Properties['wall'] -and $b.wall) {
+            $wBoard  = [System.IO.Path]::GetFileNameWithoutExtension($b.file) + '.wall.xcanvas'
+            $wStatus = [System.IO.Path]::GetFileNameWithoutExtension($b.status) + '.wall.json'
+            if ($b.wall -is [string]) { $wBoard = $b.wall }
+            $wKeyToIp = @{}; $wNames = @{}
+            foreach ($d in $devs) {
+                if (-not $wKeyToIp.ContainsKey($d.Id)) { $wKeyToIp[$d.Id] = $d.IP; $wNames[$d.Id] = $d.Label }
+            }
+            $wall = [pscustomobject]@{
+                boardSrc   = $boardPath
+                boardPath  = (Join-Path $outDir $wBoard)
+                statusPath = (Join-Path $outDir $wStatus)
+                keyToIp    = $wKeyToIp; names = $wNames
+            }
+        }
+        $boards += [pscustomobject]@{ statusPath = (Join-Path $outDir $b.status); keys = $keys.ToArray(); wall = $wall }
     }
 
     $targets = @($master.Values)
@@ -287,6 +353,30 @@ function Invoke-Poll {
     foreach ($bd in $boards) {
         Write-StatusFile -Path $bd.statusPath -Keys $bd.keys -KeyToIp $keyToIp -Results $results `
                          -Names $names -NowS $nowS -IntervalSec $Cfg.pollIntervalSec
+        if ($bd.wall) {
+            Write-StatusFile -Path $bd.wall.statusPath -Keys @($bd.wall.keyToIp.Keys) `
+                             -KeyToIp $bd.wall.keyToIp -Results $results -Names $bd.wall.names `
+                             -NowS $nowS -IntervalSec $Cfg.pollIntervalSec
+            # The stripped board only changes when the source does - gate on a
+            # cheap content hash rather than rewriting a big JSON every cycle.
+            $srcRaw  = Get-Content -Raw -LiteralPath $bd.wall.boardSrc
+            $sha     = [System.BitConverter]::ToString(
+                           [System.Security.Cryptography.SHA256]::Create().ComputeHash(
+                               [System.Text.Encoding]::UTF8.GetBytes($srcRaw)))
+            if (-not $script:WallHashes) { $script:WallHashes = @{} }
+            if ($script:WallHashes[$bd.wall.boardPath] -ne $sha -or
+                -not (Test-Path -LiteralPath $bd.wall.boardPath)) {
+                try {
+                    Write-WallBoard -SourcePath $bd.wall.boardSrc -WallPath $bd.wall.boardPath `
+                                    -MonitoredIds $bd.wall.keyToIp
+                    $script:WallHashes[$bd.wall.boardPath] = $sha
+                } catch {
+                    # A failed strip must NEVER fall back to serving the source
+                    # - fail loud, leave the previous wall copy standing.
+                    Write-Warning ("Wall board for '{0}' not refreshed: {1}" -f $bd.wall.boardSrc, $_.Exception.Message)
+                }
+            }
+        }
     }
 
     # 4) optional combined file for a NOC overview board

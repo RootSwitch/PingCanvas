@@ -196,6 +196,14 @@ draws: keep it on the management network or behind a VPN, and never
 port-forward it to the internet. Screenshots of the wall are safe to share;
 the URL is not. (Details and per-board isolation options in DEPLOY.md.)
 
+Or serve a board that matches the picture: `"wall": true` on a board in the
+poller config writes a **sanitized wall copy** - the same diagram with every
+hidden field stripped (monitored devices keep one opaque binding id), plus a
+status file named by drawn labels instead of hostnames. Point the kiosk at
+`board.wall.xcanvas` / `status.wall.json` and keep the source board in an
+unserved path (`data/.private/` works - the web tier 404s every dot-path).
+Then the URL carries no more than the wall displays. See DEPLOY.md.
+
 ## Repo layout
 
 | Path | Contents |

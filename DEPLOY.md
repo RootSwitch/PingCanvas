@@ -248,6 +248,33 @@ means they already own the box - so the items below are hygiene, not patches.
   site on a trusted segment / internal binding; never an internet-facing one.
 - Per-board status files are the isolation boundary between teams; `status-all.json`
   exposes every device, so gate who can reach it accordingly.
+- **The board file is the bigger exposure than the status JSON**: a status file
+  says which addresses answer, the board says what the network IS - hostnames,
+  addresses, custom fields, full topology - while the rendered wall shows only
+  labels. Anyone who can fetch `kiosk.html` can fetch the `.xcanvas` beside it.
+- **The wall split fixes that structurally.** `"wall": true` on a board entry
+  makes the poller write two extra files into `outputDir` each cycle:
+  `<board>.wall.xcanvas` (every device's hidden fields stripped; monitored
+  devices keep a single `Monitor ID` equal to their own opaque device id) and
+  `<status>.wall.json` (same states keyed by those ids, named by drawn labels).
+  The kiosk binds by `Monitor ID` natively, so no kiosk change is needed:
+
+  ```
+  data/.private/board.xcanvas      <- source of truth; dot-path = never served
+  data/.private/status.json        <- full status (AlertCanvas reads via file mount)
+  data/board.wall.xcanvas          <- served; carries no more than the picture
+  data/status.wall.json            <- served; names are labels, keys are opaque
+  ```
+
+  Kiosk URL: `kiosk.html?board=data/board.wall.xcanvas&status=data/status.wall.json`.
+  The dot-path trick rides the existing nginx rule (hidden names 404 under
+  `/data/`); verify with `curl -f https://wall/data/.private/board.xcanvas`
+  expecting 404. A failed strip never falls back to serving the source - the
+  poller warns and leaves the previous wall copy standing.
+- Known remaining exposure with the SNMP overlay: `snmp-status.json` still
+  carries device sysNames and interface names from SNMPCanvas. That feed is
+  what the wall DISPLAYS (codes resolve on screen), so it is picture-level by
+  design, but review it if your interface aliases are sensitive.
 
 **Network / monitoring friction**
 - Parallel ICMP/TCP on a fixed cadence looks like a scanner. Before scaling past
