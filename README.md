@@ -179,6 +179,23 @@ trust; the kiosk only reads a static file and never scans anything; the web
 tier serves static files with no server-side code. And nothing is monitored
 by default - the poller probes exactly the IPs your own board defines.
 
+**The board file is the sensitive part, and the wall hides that.** The kiosk
+renders role labels ("Core Switch"), but it works by fetching the whole
+`.xcanvas`, which carries everything the labels do not show: hostnames,
+management IPs, serials, and any custom fields an inventory import brought
+along, plus the full topology. Anyone who can reach the kiosk port can skip
+the wall and take the file:
+
+```
+curl http://wall:8080/data/board.xcanvas
+```
+
+The status feeds beside it carry hostnames and reachability too. So treat the
+kiosk port with the sensitivity of the board's data, not of the picture it
+draws: keep it on the management network or behind a VPN, and never
+port-forward it to the internet. Screenshots of the wall are safe to share;
+the URL is not. (Details and per-board isolation options in DEPLOY.md.)
+
 ## Repo layout
 
 | Path | Contents |
