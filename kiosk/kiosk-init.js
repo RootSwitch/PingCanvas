@@ -23,17 +23,18 @@
     var boardUrl = explicitBoard || 'board.xcanvas';
     // An un-parameterized kiosk searches the layouts this app actually ships
     // in, in order:
-    //   board.xcanvas       standalone - the board sits beside kiosk.html
-    //   data/board.xcanvas  suite install - nginx serves the shared data root
-    //                       at /data/, and both the setup script and the
-    //                       LaunchCanvas tile put boards there
-    //   board.netdraw       pre-rename standalone data folders
-    // Without the middle one, typing a bare kiosk.html on a suite install
-    // showed the starter board's "place a board here" guidance while a real
-    // board sat one directory away - accurate from the file's point of view,
-    // and thoroughly confusing from the operator's. An explicit ?board= is
-    // still never second-guessed.
-    var boardFallbacks = explicitBoard ? [] : ['data/board.xcanvas', 'board.netdraw'];
+    //   board.xcanvas            standalone - the board sits beside kiosk.html
+    //   data/board.wall.xcanvas  private-by-default suite install - the source
+    //                            board lives in .private (never served), the
+    //                            poller publishes this sanitized copy
+    //   data/board.xcanvas       older suite install - the board itself sits
+    //                            in the served data root
+    //   board.netdraw            pre-rename standalone data folders
+    // The wall copy outranks the plain one so that a half-migrated install
+    // (both files present) shows the sanitized board, and one un-parameterized
+    // URL - which is now also what the LaunchCanvas tile uses - works on every
+    // layout. An explicit ?board= is still never second-guessed.
+    var boardFallbacks = explicitBoard ? [] : ['data/board.wall.xcanvas', 'data/board.xcanvas', 'board.netdraw'];
     var statusUrl = explicitStatus || 'status.json';
     var snmpUrl = explicitSnmp;                       // may be derived once the board is found
 
@@ -634,9 +635,9 @@
     // When the board is ABSENT (404), fall through to the starter board that
     // ships with the app: an unmonitored example plus place-your-board
     // instructions, so a fresh install shows guidance instead of an error.
-    // That now includes an explicit ?board= that 404s - the suite's launcher
-    // tile and setup script wire ?board=data/board.xcanvas from day one, so
-    // a brand-new box hits that URL before any board has been uploaded. To
+    // That now includes an explicit ?board= that 404s - the setup script
+    // prints a ?board=data/board.wall.xcanvas URL from day one, so a
+    // brand-new box can hit that URL before any board has been uploaded. To
     // keep a production wall whose board file VANISHED from masquerading as
     // a fresh install, the ticker names the missing path in that case.
     //
@@ -783,9 +784,15 @@
             // than to the web root. Without this, a suite install found its
             // board under /data/ and then read a status file that was never
             // there - a live-looking wall with every device permanently gray.
+            // A .wall. board pairs with the .wall. status the poller writes
+            // beside it (on a private-by-default install the plain status.json
+            // is in .private with the source, i.e. not served) - this applies
+            // to an explicit ?board= too, so typing just the board is enough.
+            // snmp-status.json has no wall variant; it is served as-is.
             // Explicit ?status= / ?snmp= always win.
             var feedDir = dirOf(boardUrl);
-            if (!explicitStatus) { statusUrl = feedDir + 'status.json'; }
+            var wallPair = /\.wall\.(xcanvas|netdraw)$/i.test(boardUrl);
+            if (!explicitStatus) { statusUrl = feedDir + (wallPair ? 'status.wall.json' : 'status.json'); }
             if (!explicitSnmp) { snmpUrl = feedDir + 'snmp-status.json'; }
 
             var feed = new window.StatusFeed({
