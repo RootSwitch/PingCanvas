@@ -67,7 +67,11 @@ if (Test-Path -LiteralPath $Out) {
 
 # 1. shared renderer + the editor's own index.html (verbatim). favicon.svg is
 #    the EDITOR's icon (the html references it; omitting it 404'd silently).
-foreach ($f in 'app.js', 'devices.js', 'style.css', 'index.html', 'favicon.svg') {
+#    manifest.json + the icon PNGs make the served editor installable as a
+#    desktop app (with the .xcanvas file association) - editor-only; the
+#    kiosk build below strips the manifest link.
+foreach ($f in 'app.js', 'devices.js', 'style.css', 'index.html', 'favicon.svg',
+               'manifest.json', 'icon-192.png', 'icon-512.png') {
     Copy-Item -LiteralPath (Join-Path $CrossCanvasPath $f) -Destination (Join-Path $Out $f) -Force
 }
 $custom = Join-Path $CrossCanvasPath 'customdevices.js'
@@ -112,6 +116,12 @@ $html = $html.Replace('href="favicon.svg"', 'href="kiosk-favicon.svg"')
 # Kiosk tab title (mirrors build-web.sh): best-effort like the favicon - a
 # no-match just keeps the editor title until a board loads.
 $html = $html.Replace('<title>CrossCanvas Diagram Editor</title>', '<title>PingCanvas</title>')
+# The editor's PWA manifest must NOT ride into the kiosk shell: installing the
+# wall would claim the editor's identity (name, icon, and the .xcanvas file
+# association). Delete the comment+link block, and fail loudly if a manifest
+# link survives - anchor drift must not silently ship an installable kiosk.
+$html = $html -replace '(?s)\r?\n[ \t]*<!-- Installable as a desktop app.*?<link rel="manifest"[^>]*>', ''
+if ($html -match 'rel="manifest"') { throw 'manifest link survived the kiosk strip - update the anchor in build-web.ps1' }
 $utf8 = New-Object System.Text.UTF8Encoding($false)
 [System.IO.File]::WriteAllText((Join-Path $Out 'kiosk.html'), $html, $utf8)
 

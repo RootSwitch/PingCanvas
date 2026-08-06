@@ -43,7 +43,10 @@ find "$OUT" -mindepth 1 -maxdepth 1 ! -name '*.xcanvas' ! -name 'status*.json' -
 
 # 1. shared renderer + the editor's own index.html (verbatim). favicon.svg is
 #    the EDITOR's icon (the html references it; omitting it 404'd silently).
-for f in app.js devices.js style.css index.html favicon.svg; do cp "$CROSSCANVAS/$f" "$OUT/$f"; done
+#    manifest.json + the icon PNGs make the served editor installable as a
+#    desktop app (with the .xcanvas file association) - editor-only; the
+#    kiosk build below strips the manifest link.
+for f in app.js devices.js style.css index.html favicon.svg manifest.json icon-192.png icon-512.png; do cp "$CROSSCANVAS/$f" "$OUT/$f"; done
 [ -f "$CROSSCANVAS/customdevices.js" ] && cp "$CROSSCANVAS/customdevices.js" "$OUT/"
 
 # 2. kiosk layer + the kiosk's own favicon under a distinct name, so the NOC tab
@@ -75,6 +78,14 @@ sed -i 's|href="favicon.svg"|href="kiosk-favicon.svg"|' "$OUT/kiosk.html"
 # wall is PingCanvas (kiosk-init refines it to "PingCanvas - <board>" once a
 # board loads). Best-effort like the favicon - a no-match just keeps the editor title.
 sed -i 's|<title>CrossCanvas Diagram Editor</title>|<title>PingCanvas</title>|' "$OUT/kiosk.html"
+# The editor's PWA manifest must NOT ride into the kiosk shell: installing the
+# wall would claim the editor's identity (name, icon, and the .xcanvas file
+# association). Delete the comment+link block, and fail loudly if a manifest
+# link survives - anchor drift must not silently ship an installable kiosk.
+sed -i '/<!-- Installable as a desktop app/,/<link rel="manifest"/d' "$OUT/kiosk.html"
+if grep -q 'rel="manifest"' "$OUT/kiosk.html"; then
+    echo "manifest link survived the kiosk strip - update the anchor in build-web.sh" >&2; exit 1
+fi
 
 echo "Built web root -> $OUT"
 ls -la "$OUT"

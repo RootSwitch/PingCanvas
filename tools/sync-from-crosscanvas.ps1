@@ -96,6 +96,12 @@ $html = $html.Replace($anchApp,
 # to "PingCanvas - <board>" once a board loads). Best-effort - a no-match keeps
 # the editor title.
 $html = $html.Replace('<title>CrossCanvas Diagram Editor</title>', '<title>PingCanvas</title>')
+# The editor's PWA manifest must NOT ride into the kiosk shell: installing the
+# wall would claim the editor's identity (name, icon, and the .xcanvas file
+# association). Delete the comment+link block, and fail loudly if a manifest
+# link survives - anchor drift must not silently ship an installable kiosk.
+$html = $html -replace '(?s)\r?\n[ \t]*<!-- Installable as a desktop app.*?<link rel="manifest"[^>]*>', ''
+if ($html -match 'rel="manifest"') { throw 'manifest link survived the kiosk strip - update the anchor in sync-from-crosscanvas.ps1' }
 
 $utf8 = New-Object System.Text.UTF8Encoding($false)
 [System.IO.File]::WriteAllText((Join-Path $Dest 'kiosk.html'), $html, $utf8)
