@@ -279,10 +279,15 @@ means they already own the box - so the items below are hygiene, not patches.
   `/data/`); verify with `curl -f https://wall/data/.private/board.xcanvas`
   expecting 404. A failed strip never falls back to serving the source - the
   poller warns and leaves the previous wall copy standing.
-- Known remaining exposure with the SNMP overlay: `snmp-status.json` still
-  carries device sysNames and interface names from SNMPCanvas. That feed is
-  what the wall DISPLAYS (codes resolve on screen), so it is picture-level by
-  design, but review it if your interface aliases are sensitive.
+- The SNMP overlay has the same split: the full `snmp-status.json` names every
+  monitored device (sysName, host address, interface names/aliases - including
+  devices on no board), so SNMPCanvas also writes an anonymized
+  `snmp-status.wall.json` ({code} keys and values only). Serve the wall
+  variant (`?snmp=data/snmp-status.wall.json` - a `.wall.` board derives it
+  automatically) and keep the full file unserved; on the suite's setup-script
+  layout that is the default. One trade: annotations keyed by
+  `Device:ifName`/`Device:alias` only bind against the full file - use the
+  `{code}` form, which binds against both.
 
 **Network / monitoring friction**
 - Parallel ICMP/TCP on a fixed cadence looks like a scanner. Before scaling past

@@ -784,16 +784,18 @@
             // than to the web root. Without this, a suite install found its
             // board under /data/ and then read a status file that was never
             // there - a live-looking wall with every device permanently gray.
-            // A .wall. board pairs with the .wall. status the poller writes
-            // beside it (on a private-by-default install the plain status.json
-            // is in .private with the source, i.e. not served) - this applies
-            // to an explicit ?board= too, so typing just the board is enough.
-            // snmp-status.json has no wall variant; it is served as-is.
+            // A .wall. board pairs with the .wall. feeds written beside it (on
+            // a private-by-default install the plain status.json and full
+            // snmp-status.json sit in .private with the source, i.e. not
+            // served) - this applies to an explicit ?board= too, so typing
+            // just the board is enough. The SNMP wall variant is SNMPCanvas's
+            // codes-and-values copy (no device names/hosts); {code} bindings
+            // resolve identically, name-keyed annotations need the full file.
             // Explicit ?status= / ?snmp= always win.
             var feedDir = dirOf(boardUrl);
             var wallPair = /\.wall\.(xcanvas|netdraw)$/i.test(boardUrl);
             if (!explicitStatus) { statusUrl = feedDir + (wallPair ? 'status.wall.json' : 'status.json'); }
-            if (!explicitSnmp) { snmpUrl = feedDir + 'snmp-status.json'; }
+            if (!explicitSnmp) { snmpUrl = feedDir + (wallPair ? 'snmp-status.wall.json' : 'snmp-status.json'); }
 
             var feed = new window.StatusFeed({
                 url: statusUrl,
