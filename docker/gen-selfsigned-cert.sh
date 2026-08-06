@@ -11,7 +11,7 @@
 # (e.g. a shared data folder the override mounts), matching the Node apps'
 # gen-cert.sh so the whole suite honors the same variable:
 #
-#   CERT_DIR=/srv/noc-data/certs ./gen-selfsigned-cert.sh noc.lan
+#   CERT_DIR=/srv/canvas-suite/certs ./gen-selfsigned-cert.sh noc.lan
 #
 # Browsers WILL warn on a self-signed cert - that's expected. Trust it once on
 # the kiosk machine, or front PingCanvas with a proxy (Caddy) for real PKI.

@@ -150,15 +150,15 @@ that lives inside `pingcanvas/` is fragile - the classic "it vanished on
 rebuild"). Create it once on the host, then bind-mount it from both stacks:
 
 ```bash
-sudo mkdir -p /srv/noc-data && sudo chmod 2775 /srv/noc-data   # or a shared gid
+sudo mkdir -p /srv/canvas-suite && sudo chmod 2775 /srv/canvas-suite   # or a shared gid
 ```
 ```yaml
 # PingCanvas: docker-compose.override.yml (leave the shipped ./data default alone)
 services:
-  web:    { volumes: [ "/srv/noc-data:/usr/share/nginx/html/data:ro,z" ] }
-  poller: { volumes: [ "/srv/noc-data:/data:z" ] }
+  web:    { volumes: [ "/srv/canvas-suite:/usr/share/nginx/html/data:ro,z" ] }
+  poller: { volumes: [ "/srv/canvas-suite:/data:z" ] }
 # SNMPCanvas: its export mount -> the same host path
-  #          [ "/srv/noc-data:/export:z" ]
+  #          [ "/srv/canvas-suite:/export:z" ]
 ```
 
 Have SNMPCanvas publish **atomically** (temp file + `rename()`, as this poller
