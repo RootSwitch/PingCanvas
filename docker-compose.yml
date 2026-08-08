@@ -57,6 +57,15 @@ services:
       COMBINED: "1"
     cap_add:
       - NET_RAW                                 # ICMP (ping) needs raw sockets
+    extra_hosts:
+      # Lets a board monitor the Docker host itself under the conventional
+      # name - SNMPCanvas's compose has the same mapping for polling the
+      # host's own snmpd, and its inventory export hands that name back here
+      # via the board round-trip (scan -> bulk add -> export -> board). On
+      # Linux the name does not exist unless mapped (it is a Docker Desktop
+      # nicety elsewhere); host-gateway = the bridge gateway, which IS the
+      # host, and the /etc/hosts entry works under host networking too.
+      - "host.docker.internal:host-gateway"
     # host networking so the poller can reach the monitored management segment
     # and ping by IP. Linux only; on Docker Desktop (Mac/Win) drop this line and
     # rely on bridge routing. THIS is the one setting to get right per site.
