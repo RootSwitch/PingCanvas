@@ -77,7 +77,7 @@ foreach ($f in $files) {
 #    anchors. If CrossCanvas ever moves these anchors the replaces miss and we
 #    fail loudly rather than emit a half-wired kiosk page.
 $htmlSrc = Join-Path $CrossCanvasPath 'index.html'
-$html    = Get-Content -Raw -LiteralPath $htmlSrc
+$html    = Get-Content -Raw -Encoding UTF8 -LiteralPath $htmlSrc
 
 $anchCss = '<link rel="stylesheet" href="style.css">'
 $anchApp = '<script src="app.js"></script>'
@@ -113,7 +113,7 @@ $utf8 = New-Object System.Text.UTF8Encoding($false)
 # injected NETDRAW_EMBED), never a file someone placed.
 $oldShell = Join-Path $Dest 'index.html'
 if ((Test-Path -LiteralPath $oldShell) -and
-    ((Get-Content -Raw -LiteralPath $oldShell) -match 'window\.(CROSSCANVAS|NETDRAW)_EMBED = true')) {
+    ((Get-Content -Raw -Encoding UTF8 -LiteralPath $oldShell) -match 'window\.(CROSSCANVAS|NETDRAW)_EMBED = true')) {
     Remove-Item -LiteralPath $oldShell -Force
     Write-Host "Removed stale pre-4.0 kiosk shell: index.html (the wall is kiosk.html now)"
 }

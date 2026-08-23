@@ -47,7 +47,15 @@ function Read-Config {
     # $cfg and the poller would loop forever polling zero boards. The classic
     # typo is Windows backslashes in JSON strings ("C:\Scripts\..."): \S is an
     # invalid escape. Use forward slashes or doubled backslashes.
-    try { $cfg = Get-Content -Raw -LiteralPath $Path | ConvertFrom-Json -ErrorAction Stop }
+# ENCODING, deliberately explicit on every read below. Windows PowerShell
+# 5.1 defaults Get-Content to the ANSI codepage, so a UTF-8 file with no BOM
+# is decoded as Windows-1252 and any non-ASCII is corrupted on the way back
+# out - a device labelled "Cafe" with an accent would reach the wall mangled.
+# PowerShell 7 defaults to UTF-8, so this only ever bit the Windows scheduled
+# task path, which is exactly the deployment nobody tests with a non-ASCII
+# board. The write side already avoids the cmdlets entirely (WriteAllText with
+# an explicit UTF8Encoding, below); the read side did not, until now.
+    try { $cfg = Get-Content -Raw -Encoding UTF8 -LiteralPath $Path | ConvertFrom-Json -ErrorAction Stop }
     catch {
         throw ("Config is not valid JSON ($Path): $($_.Exception.Message)`n" +
                "Hint: JSON paths need forward slashes (C:/Scripts/...) or doubled backslashes (C:\\Scripts\\...).")
@@ -88,7 +96,7 @@ function Read-BoardDevices {
     # loop would then iterate nothing and publish an all-gray "unmonitored"
     # board, i.e. a healthy-looking wall hiding a broken feed. Same reasoning as
     # Read-Config.
-    $doc = Get-Content -Raw -LiteralPath $Path | ConvertFrom-Json -ErrorAction Stop
+    $doc = Get-Content -Raw -Encoding UTF8 -LiteralPath $Path | ConvertFrom-Json -ErrorAction Stop
     $out = New-Object System.Collections.ArrayList
     foreach ($d in $doc.devices) {
         $f  = $d.fields
@@ -149,7 +157,7 @@ function Read-BoardDevices {
 # Zero kiosk changes: the binding contract is unchanged, only who fills it in.
 function Write-WallBoard {
     param([string]$SourcePath, [string]$WallPath, [hashtable]$MonitoredIds, [string]$SourceSha)
-    $raw = Get-Content -Raw -LiteralPath $SourcePath
+    $raw = Get-Content -Raw -Encoding UTF8 -LiteralPath $SourcePath
     $doc = $raw | ConvertFrom-Json -ErrorAction Stop
     foreach ($d in $doc.devices) {
         if ($MonitoredIds.ContainsKey("$($d.id)")) {
@@ -184,7 +192,7 @@ function Get-WallSourceSha {
     param([string]$WallPath)
     if (-not (Test-Path -LiteralPath $WallPath)) { return $null }
     try {
-        $head = Get-Content -Raw -LiteralPath $WallPath
+        $head = Get-Content -Raw -Encoding UTF8 -LiteralPath $WallPath
         if ($head -match '"wallSourceSha":\s*"([0-9A-Fa-f-]+)"') { return $Matches[1] }
     } catch { }
     return $null
@@ -256,7 +264,7 @@ function Get-PriorDevices {
     $map = @{}
     if (Test-Path -LiteralPath $Path) {
         try {
-            $prev = Get-Content -Raw -LiteralPath $Path | ConvertFrom-Json
+            $prev = Get-Content -Raw -Encoding UTF8 -LiteralPath $Path | ConvertFrom-Json
             foreach ($p in $prev.devices.PSObject.Properties) { $map[$p.Name] = $p.Value }
         } catch { }
     }
@@ -382,7 +390,7 @@ function Invoke-Poll {
             # must be STATELESS across invocations (docker runs the poller
             # -Once per cycle in a fresh process), so the comparison hash
             # lives inside the wall file itself, not in a variable.
-            $srcRaw  = Get-Content -Raw -LiteralPath $bd.wall.boardSrc
+            $srcRaw  = Get-Content -Raw -Encoding UTF8 -LiteralPath $bd.wall.boardSrc
             $sha     = [System.BitConverter]::ToString(
                            [System.Security.Cryptography.SHA256]::Create().ComputeHash(
                                [System.Text.Encoding]::UTF8.GetBytes($srcRaw)))

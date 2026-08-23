@@ -69,7 +69,7 @@ foreach ($f in $files) {
 # editor+kiosk root has a legitimate index.html - the editor - with no flag).
 $staleShell = Join-Path $Dest 'index.html'
 if ((Test-Path -LiteralPath $staleShell) -and
-    ((Get-Content -Raw -LiteralPath $staleShell) -match 'window\.(CROSSCANVAS|NETDRAW)_EMBED = true')) {
+    ((Get-Content -Raw -Encoding UTF8 -LiteralPath $staleShell) -match 'window\.(CROSSCANVAS|NETDRAW)_EMBED = true')) {
     Remove-Item -LiteralPath $staleShell -Force
     Write-Host "Removed stale pre-4.0 kiosk shell from target: index.html (the wall is kiosk.html now)"
 }
