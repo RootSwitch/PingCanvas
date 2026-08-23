@@ -86,7 +86,12 @@ Copy-Item -LiteralPath (Join-Path $kiosk 'favicon.svg') -Destination (Join-Path 
 
 # 3. kiosk.html = CrossCanvas's index.html with the embed flag + kiosk assets injected
 #    at stable anchors (fail loudly if CrossCanvas ever moves them).
-$html    = Get-Content -Raw -LiteralPath (Join-Path $CrossCanvasPath 'index.html')
+# -Encoding UTF8 is NOT optional on Windows PowerShell 5.1: Get-Content
+# defaults to the ANSI codepage, so a UTF-8 file without a BOM is decoded
+# as Windows-1252 and written back double-encoded. That is how the kiosk's
+# "2x and 4x" tooltip shipped as mojibake for weeks - CP1252 maps 0x97 to
+# an em dash, so U+00D7 came out as two characters.
+$html    = Get-Content -Raw -Encoding UTF8 -LiteralPath (Join-Path $CrossCanvasPath 'index.html')
 $anchCss = '<link rel="stylesheet" href="style.css">'
 $anchApp = '<script src="app.js"></script>'
 $anchBody = '<body>'
