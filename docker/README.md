@@ -46,8 +46,15 @@ Then:
 
 | Container | Image | Job |
 |-----------|-------|-----|
-| `web`     | nginx:alpine | serves both apps + the `./data` files (read-only) |
-| `poller`  | mcr…/powershell | discovers `./data/*.xcanvas`, probes, writes `status*.json` |
+| `web`     | nginx:1.31-alpine | serves both apps + the `./data` files (read-only) |
+| `poller`  | mcr…/powershell, pinned by digest | discovers `./data/*.xcanvas`, probes, writes `status*.json` |
+
+Both base images are pinned so a rebuild cannot change what you run. nginx
+takes an ordinary version pin. The PowerShell image cannot: MCR publishes no
+plain `7`/`7.4` tag, every `<version>-<distro>` tag is amd64-only, and `lts`
+resolves to an out-of-support 7.2 - so it is pinned by manifest-list digest,
+which is the only form that fixes the version AND keeps `linux/arm/v7` for
+the Raspberry Pi. The Dockerfile carries the measurements and the bump recipe.
 
 - **Boards are data, not image.** Drop a `*.xcanvas` into `./data` and the poller
   picks it up next cycle (auto-discovered) - no restart, no config editing. Each

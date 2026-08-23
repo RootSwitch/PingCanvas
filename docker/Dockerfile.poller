@@ -1,6 +1,25 @@
 # PingCanvas poller - PowerShell (Linux) running the unchanged poller on a loop,
 # auto-discovering boards from /data. Build context is the repo root.
-FROM mcr.microsoft.com/powershell:latest
+# PINNED BY DIGEST, because no tag on this image is both version-pinned and
+# multi-architecture, and the Pi deployment needs both. Measured 2026-08-23
+# with `docker manifest inspect`:
+#
+#   latest                -> manifest LIST: linux/amd64, linux/arm/v7, windows/amd64
+#   lts                   -> manifest LIST, but resolves to 7.2.19, an EOL LTS
+#   7.4-ubuntu-22.04      -> SINGLE platform, amd64 only (as does every other
+#   7.4-debian-12            <version>-<distro> tag; MCR publishes no plain
+#   7.5-ubuntu-22.04         `7` or `7.4` tag at all)
+#
+# So the obvious move - pin to 7.4 - is the one that silently breaks ARM, and
+# `lts` is a downgrade to an out-of-support release. The digest below is the
+# manifest LIST for `latest` as of 2026-08-23 (PowerShell 7.4.2 on Ubuntu
+# 22.04), so all three platforms are preserved and the build is reproducible.
+#
+# To bump: docker pull mcr.microsoft.com/powershell:latest, take the printed
+# Digest, confirm it is still a manifest list, and replace it here. Do not
+# swap this for a <version>-<distro> tag without re-checking the manifest -
+# the failure lands on the Pi and nowhere else.
+FROM mcr.microsoft.com/powershell@sha256:810c4f1e0c9d23022c3ec18c50a6205ee4b60766f1739d329b2948df1fd7d5b0
 WORKDIR /app
 COPY poller/pingcanvas-poller.ps1 /app/pingcanvas-poller.ps1
 COPY docker/docker-entrypoint.ps1 /app/docker-entrypoint.ps1
