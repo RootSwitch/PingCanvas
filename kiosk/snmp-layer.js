@@ -199,13 +199,21 @@
         var texts = svg.querySelectorAll('text.connection-annotation');
         for (var i = 0; i < texts.length; i++) {
             var t = texts[i];
-            var g = t.parentNode;                  // <g id="conn.id">
+            // The annotation's own group is its connection's TEXT group,
+            // <g id="cl-<conn.id>" data-conn="<conn.id>"> in conn-labels-layer;
+            // the line is in the connection's group in connections-layer.
+            // (Before CrossCanvas lifted connection text above every line, the
+            // text's parent WAS the connection group - data-conn absent, g.id
+            // the connection's id - which the fallback below still reads.)
+            var g = t.parentNode;
             if (!g || !g.id) { continue; }
+            var connId = g.getAttribute('data-conn') || g.id;
             var annId = t.getAttribute('data-ann-id');
-            var dedupe = g.id + '|' + annId;
+            var dedupe = connId + '|' + annId;
             if (seen[dedupe]) { continue; }
             seen[dedupe] = true;
-            var path = g.querySelector('path.connection-line');
+            var lineG = document.getElementById(connId);
+            var path = lineG ? lineG.querySelector('path.connection-line') : null;
             if (!path) { continue; }
             // An annotation renders one <text> per LINE, all sharing the ann
             // id, and every line gets hidden behind the pill - so the key must

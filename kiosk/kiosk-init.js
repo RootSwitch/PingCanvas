@@ -221,8 +221,15 @@
         if (!ctm) { return; }
         var inv = ctm.inverse();
         var zones = window.CrossCanvas.zones ? window.CrossCanvas.zones() : [];
+        // Connection labels and annotations moved from connections-layer to
+        // conn-labels-layer (CrossCanvas, 2026-10) and keep their rescue here.
+        // Zone titles moved to zone-labels-layer on 2026-08-11 and are NOT
+        // listed, deliberately for now: their halo is stroked for the white
+        // canvas they were rendered on, so a rescued title on a ?bg= dark
+        // canvas becomes light text inside a white outline - worse than the
+        // dark-on-white-halo it shows unrescued.
         var texts = svg.querySelectorAll(
-            '#zones-layer text, #connections-layer text, #devices-layer text');
+            '#zones-layer text, #connections-layer text, #conn-labels-layer text, #devices-layer text');
         for (var i = 0; i < texts.length; i++) {
             var el = texts[i];
             var box = el.getBoundingClientRect();

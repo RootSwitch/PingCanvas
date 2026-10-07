@@ -7,6 +7,21 @@ what changed and when, newest first.
 
 ## Unreleased
 
+- **Kiosk follows CrossCanvas's connection-text layer.** CrossCanvas now draws
+  connection labels and annotations in their own layer above every line
+  (`conn-labels-layer`, one `cl-<connId>` group per connection naming it in
+  `data-conn`), so a note is no longer struck through by connections saved
+  after it. `snmp-layer.js` found an annotation's line through the
+  annotation's parent group, which is now the text group: with a new
+  CrossCanvas and the old script, SNMP-coded annotations bind nothing - no
+  pill, no down/degraded recolor - silently. It now reads `data-conn` and
+  looks the line up by id, falling back to the parent's id for an older
+  CrossCanvas. `kiosk-init.js`'s dark-canvas contrast pass gained the new
+  layer, so connection text keeps the rescue it had. Verified on a synced
+  kiosk: a `{CODE}` annotation reporting down recolors its line and draws its
+  pill; the old script against the new renderer leaves the line blue. Update
+  PingCanvas and CrossCanvas together.
+
 - **`tools/test-snmp-schema.js`**: proves a kiosk indexes an SNMPCanvas v3 feed
   and a v4 feed identically. Version skew between siblings is normal - separate
   repos mean somebody updates SNMPCanvas on Tuesday and the kiosk Pi in March -
