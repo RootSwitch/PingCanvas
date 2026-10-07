@@ -7,6 +7,22 @@ what changed and when, newest first.
 
 ## Unreleased
 
+- **Dark-canvas label rescue judges what each label really sits on, and
+  re-strokes its halo.** On a `?bg=` or theme-rotated dark canvas the kiosk
+  tags labels on dark surfaces so their text turns light. It judged the board
+  alone, and left halos as rendered. CrossCanvas strokes a halo in the board
+  color it sees at render time - white, because the kiosk paints the canvas
+  after the board loads - so every rescued label was light text in a white
+  outline. Pill-style connection labels and annotations turned light on their
+  own white pill, and a label inside a device turned light on the device's
+  white face. The surface is now the board plus the label's own backing (a
+  visible pill, or the face an inside device label sits on); it decides the
+  rescue and re-strokes the halo, with an inline style, so nothing re-renders
+  and the SNMP overlay's swaps survive. Zone titles, left out of the rescue
+  since they moved to `zone-labels-layer` on 2026-08-11, are back in it: a
+  title on a dark zone had been dark text on dark. Verified on the 8090 kiosk
+  with pill and halo boards on `#202020` and on a light `#f4f1ea` canvas.
+
 - **Kiosk follows CrossCanvas's connection-text layer.** CrossCanvas now draws
   connection labels and annotations in their own layer above every line
   (`conn-labels-layer`, one `cl-<connId>` group per connection naming it in

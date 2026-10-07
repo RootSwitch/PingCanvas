@@ -214,6 +214,45 @@
     // Tagging elements with a class (rather than re-rendering) is deliberate:
     // a CSS rule outranks the fill presentation attribute, and re-rendering a
     // layer would wipe the SNMP overlay's in-place label swaps and tints.
+    //
+    // The surface is what the label ACTUALLY sits on: the board (canvas plus
+    // every zone over the point) and then its own backing, when it has one -
+    // the white pill a connection label or annotation wears in the pill and
+    // chip styles, or the face of the device an inside label is drawn on.
+    // Judging by the board alone turned pill text light on its white pill and
+    // an inside device label light on its white face. The same surface
+    // re-strokes the label's halo: CrossCanvas strokes halos at render time in
+    // the board color it saw then, which is white - the kiosk paints ?bg= and
+    // every theme canvas AFTER the board loads, without a re-render - so a
+    // rescued label was light text inside a white outline.
+    function labelBacking(el, box) {
+        var grp = el.parentNode;
+        if (!grp || !grp.querySelector) { return null; }
+        var rect = null;
+        if (el.classList.contains('connection-label')) {
+            rect = grp.querySelector('rect.connection-label-bg');
+        } else if (el.classList.contains('connection-annotation')) {
+            rect = grp.querySelector('rect.connection-annotation-bg[data-ann-id="' +
+                el.getAttribute('data-ann-id') + '"]');
+        } else if (grp.classList.contains('device-node')) {
+            // Only a label INSIDE the frame sits on the face; the usual bottom
+            // or side label sits on the board.
+            var face = grp.querySelector('rect.device-border');
+            if (face) {
+                var fb = face.getBoundingClientRect();
+                var cx = box.left + box.width / 2, cy = box.top + box.height / 2;
+                if (cx >= fb.left && cx <= fb.right && cy >= fb.top && cy <= fb.bottom) { rect = face; }
+            }
+        }
+        if (!rect || rect.style.display === 'none') { return null; }
+        var rgb = toRGB(rect.getAttribute('fill') || '');
+        if (!rgb) { return null; }
+        var op = parseFloat(rect.getAttribute('fill-opacity'));
+        var alpha = (isNaN(op) ? 1 : op) * (rgb.length > 3 ? rgb[3] : 1);
+        // The halo style keeps the label box as a fully transparent hit target.
+        return alpha > 0 ? { rgb: rgb, alpha: alpha } : null;
+    }
+
     function applyLabelContrast() {
         if (!canvasRGB || !window.CrossCanvas || !window.CrossCanvas.svg) { return; }
         var svg = window.CrossCanvas.svg();
@@ -221,15 +260,14 @@
         if (!ctm) { return; }
         var inv = ctm.inverse();
         var zones = window.CrossCanvas.zones ? window.CrossCanvas.zones() : [];
-        // Connection labels and annotations moved from connections-layer to
-        // conn-labels-layer (CrossCanvas, 2026-10) and keep their rescue here.
-        // Zone titles moved to zone-labels-layer on 2026-08-11 and are NOT
-        // listed, deliberately for now: their halo is stroked for the white
-        // canvas they were rendered on, so a rescued title on a ?bg= dark
-        // canvas becomes light text inside a white outline - worse than the
-        // dark-on-white-halo it shows unrescued.
+        // Every layer that carries board text. Zone titles live in
+        // zone-labels-layer (since 2026-08-11) and connection labels and
+        // annotations in conn-labels-layer (since 2026-10); a layer missing
+        // here is text that silently never gets rescued. Zone titles waited
+        // out of this list until halos were re-stroked below.
         var texts = svg.querySelectorAll(
-            '#zones-layer text, #connections-layer text, #conn-labels-layer text, #devices-layer text');
+            '#zones-layer text, #connections-layer text, #zone-labels-layer text, ' +
+            '#conn-labels-layer text, #devices-layer text');
         for (var i = 0; i < texts.length; i++) {
             var el = texts[i];
             var box = el.getBoundingClientRect();
@@ -255,7 +293,18 @@
                 g = zf[1] * a + g * (1 - a);
                 b = zf[2] * a + b * (1 - a);
             }
+            var backing = labelBacking(el, box);
+            if (backing) {
+                r = backing.rgb[0] * backing.alpha + r * (1 - backing.alpha);
+                g = backing.rgb[1] * backing.alpha + g * (1 - backing.alpha);
+                b = backing.rgb[2] * backing.alpha + b * (1 - backing.alpha);
+            }
             el.classList.toggle('pc-on-dark', brightness([r, g, b]) < 140);
+            // A halo is a stroke attribute (CrossCanvas sets one only for a
+            // halo); an inline style outranks it without a re-render.
+            if (el.hasAttribute('stroke')) {
+                el.style.stroke = 'rgb(' + Math.round(r) + ', ' + Math.round(g) + ', ' + Math.round(b) + ')';
+            }
         }
     }
 
